@@ -138,6 +138,9 @@ import { Component, Vue, Ref } from 'vue-property-decorator';
 import { SceneManager, FocusTarget, ViewAngle, CameraPreset } from '@/modules/three/SceneManager';
 import { VRMLoader } from '@/modules/vrm/VRMLoader';
 import { VRM } from '@pixiv/three-vrm';
+import { NailModelLoader, LoadedNailAsset } from '@/modules/nail/NailModelLoader';
+import { NailAttacher } from '@/modules/nail/NailAttacher';
+import { FingerId, ALL_FINGER_IDS, getOppositeFinger, NailTransform } from '@/modules/nail/types';
 
 @Component
 export default class ThreeCanvas extends Vue {
@@ -145,6 +148,10 @@ export default class ThreeCanvas extends Vue {
 
   private sceneManager: SceneManager | null = null;
   private vrmLoader: VRMLoader = new VRMLoader();
+  private nailModelLoader: NailModelLoader = new NailModelLoader();
+  private nailAttacher: NailAttacher = new NailAttacher();
+  private loadedNailAssets: Map<FingerId, LoadedNailAsset> | null = null;
+
   private isDragging = false;
   private currentFocus: FocusTarget = 'hands';
   private currentAngle: ViewAngle = 'normal';
@@ -196,7 +203,8 @@ export default class ThreeCanvas extends Vue {
         message: `${name} を読み込み中...`
       });
 
-      // 既存のモデルをアンロード
+      // 既存のネイルとモデルをアンロード
+      this.nailAttacher.detachAll();
       if (this.vrmLoader.currentVRM) {
         this.sceneManager.scene.remove(this.vrmLoader.currentVRM.scene);
         this.vrmLoader.unload();
@@ -216,9 +224,19 @@ export default class ThreeCanvas extends Vue {
       this.sceneManager.scene.add(vrm.scene);
       this.sceneManager.setVRM(vrm);
 
+      console.log('[DEBUG] VRM loaded:', name);
+      console.log('[DEBUG] vrm.scene visible:', vrm.scene.visible, 'children:', vrm.scene.children.length);
+      console.log('[DEBUG] camera pos:', this.sceneManager.camera.position.toArray());
+      console.log('[DEBUG] controls target:', this.sceneManager.controls.target.toArray());
+
       // メタ情報をストアに登録
       const meta = this.vrmLoader.extractMeta(vrm);
       this.$store.commit('setModel', { name, meta });
+
+      // ネイルが有効化されていた場合は新モデルへ再アタッチ
+      if (this.$store.state.nail?.isAttached) {
+        await this.attachNails();
+      }
 
       this.$emit('vrm-loaded', { vrm, meta });
       return vrm;
@@ -241,6 +259,7 @@ export default class ThreeCanvas extends Vue {
         message: `${file.name} を読み込み中...`
       });
 
+      this.nailAttacher.detachAll();
       if (this.vrmLoader.currentVRM) {
         this.sceneManager.scene.remove(this.vrmLoader.currentVRM.scene);
         this.vrmLoader.unload();
@@ -263,6 +282,10 @@ export default class ThreeCanvas extends Vue {
       const meta = this.vrmLoader.extractMeta(vrm);
       this.$store.commit('setModel', { name: file.name, meta });
 
+      if (this.$store.state.nail?.isAttached) {
+        await this.attachNails();
+      }
+
       this.$emit('vrm-loaded', { vrm, meta });
       return vrm;
     } catch (err: any) {
@@ -271,6 +294,121 @@ export default class ThreeCanvas extends Vue {
       return null;
     } finally {
       this.$store.commit('setLoading', { isLoading: false });
+    }
+  }
+
+  /**
+   * ネイルチップ 3D モデルを読み込み、現在の VRM の指先へ自動装着
+   */
+  public async attachNails(): Promise<boolean> {
+    const vrm = this.vrmLoader.currentVRM;
+    if (!vrm) return false;
+
+    try {
+      this.$store.commit('nail/setLoading', true);
+
+      // 初回のみモデルを全指一括読み込み
+      if (!this.loadedNailAssets) {
+        this.loadedNailAssets = await this.nailModelLoader.loadAllFingers();
+
+        // モーフターゲット名の抽出
+        for (const asset of this.loadedNailAssets.values()) {
+          if (asset.morphTargetNames.length > 0) {
+            this.$store.commit('nail/setAvailableMorphNames', asset.morphTargetNames);
+            break;
+          }
+        }
+      }
+
+      // ボーンへアタッチ
+      console.log('[DEBUG] attachNails calling attachAll...');
+      this.nailAttacher.attachAll(
+        vrm,
+        this.loadedNailAssets,
+        this.$store.state.nail.configs
+      );
+      console.log('[DEBUG] attachNails finished. isAttached:', this.nailAttacher.isAttached());
+
+      this.$store.commit('nail/setAttached', true);
+      return true;
+    } catch (err: any) {
+      console.error('Failed to attach nails:', err);
+      alert('ネイルの装着に失敗しました: ' + (err.message || '不明なエラー'));
+      return false;
+    } finally {
+      this.$store.commit('nail/setLoading', false);
+    }
+  }
+
+  /**
+   * 全ネイルチップをデタッチ
+   */
+  public detachNails(): void {
+    this.nailAttacher.detachAll();
+    this.$store.commit('nail/setAttached', false);
+  }
+
+  /**
+   * 指定指のトランスフォーム変更を 3D メッシュへ反映
+   */
+  public updateNailTransform(payload: { fingerId: FingerId; key?: keyof NailTransform; value?: number }): void {
+    const { fingerId } = payload;
+    const configs = this.$store.state.nail.configs;
+    const targetConfig = configs[fingerId];
+    if (targetConfig) {
+      this.nailAttacher.updateTransform(fingerId, targetConfig.transform);
+    }
+
+    // 左右対称同期
+    if (this.$store.state.nail.symmetrySync) {
+      const oppId = getOppositeFinger(fingerId);
+      const oppConfig = configs[oppId];
+      if (oppConfig) {
+        this.nailAttacher.updateTransform(oppId, oppConfig.transform);
+      }
+    }
+  }
+
+  /**
+   * 全指のトランスフォームを一括反映
+   */
+  public updateAllNailTransforms(): void {
+    const configs = this.$store.state.nail.configs;
+    for (const id of ALL_FINGER_IDS) {
+      const cfg = configs[id];
+      if (cfg) {
+        this.nailAttacher.updateTransform(id, cfg.transform);
+      }
+    }
+  }
+
+  /**
+   * 指定指のモーフウェイトを 3D メッシュへ反映
+   */
+  public updateNailMorph(payload: { fingerId: FingerId; name?: string; value?: number }): void {
+    const { fingerId } = payload;
+    const configs = this.$store.state.nail.configs;
+    const targetConfig = configs[fingerId];
+    if (targetConfig) {
+      this.nailAttacher.updateMorphs(fingerId, targetConfig.morphs);
+    }
+
+    if (this.$store.state.nail.symmetrySync) {
+      const oppId = getOppositeFinger(fingerId);
+      const oppConfig = configs[oppId];
+      if (oppConfig) {
+        this.nailAttacher.updateMorphs(oppId, oppConfig.morphs);
+      }
+    }
+  }
+
+  /**
+   * 指定指先へカメラをフォーカス
+   */
+  public focusFinger(fingerId: FingerId): void {
+    const worldPos = this.nailAttacher.getFingerTipWorldPosition(fingerId);
+    if (worldPos && this.sceneManager) {
+      this.sceneManager.focusOnPoint(worldPos);
     }
   }
 
@@ -348,6 +486,7 @@ export default class ThreeCanvas extends Vue {
   }
 
   private cleanup() {
+    this.nailAttacher.detachAll();
     if (this.vrmLoader.currentVRM && this.sceneManager) {
       this.sceneManager.scene.remove(this.vrmLoader.currentVRM.scene);
       this.vrmLoader.unload();

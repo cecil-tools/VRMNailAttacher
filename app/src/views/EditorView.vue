@@ -88,22 +88,19 @@
           </div>
         </div>
 
-        <!-- Section 3: Nail Controls (Next Phase Placeholder) -->
+        <!-- Section 3: Nail Controls -->
         <div class="editor-sidebar__section">
-          <div class="section-header">
-            <h3 class="section-title">ネイル設定</h3>
-            <span class="badge" :class="hasModel ? 'badge--info' : 'badge--muted'">
-              {{ hasModel ? '準備完了' : 'アバター待機' }}
-            </span>
-          </div>
-          <p v-if="!hasModel" class="editor-sidebar__hint">
-            アバターを読み込むと、指先ボーンへのネイル自動装着やテクスチャ差し替えが利用可能になります。
-          </p>
-          <div v-else class="nail-placeholder">
-            <p class="nail-placeholder__text">
-              ✨ アバターが読み込まれました。フェーズ 3 でネイルチップ自動装着エンジンがここに展開されます。
-            </p>
-          </div>
+          <NailControlPanel
+            @request-attach="onRequestAttach"
+            @request-detach="onRequestDetach"
+            @select-finger="onSelectFinger"
+            @focus-finger="onFocusFinger"
+            @transform-change="onTransformChange"
+            @reset-transform="onResetTransform"
+            @apply-all-transform="onApplyAllTransform"
+            @morph-change="onMorphChange"
+            @morph-reset="onMorphReset"
+          />
         </div>
       </aside>
     </div>
@@ -134,12 +131,15 @@
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
 import ThreeCanvas from '@/components/Viewer/ThreeCanvas.vue';
+import NailControlPanel from '@/components/Sidebar/NailControlPanel.vue';
 import { PresetModel } from '@/store';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
+import { FingerId, NailTransform } from '@/modules/nail/types';
 
 @Component({
   components: {
-    ThreeCanvas
+    ThreeCanvas,
+    NailControlPanel
   }
 })
 export default class EditorView extends Vue {
@@ -196,6 +196,61 @@ export default class EditorView extends Vue {
 
   private onVrmLoaded(payload: { vrm: any; meta: VRMModelMeta }) {
     console.log('VRM successfully loaded:', payload.meta);
+  }
+
+  private async onRequestAttach() {
+    if (this.threeCanvas) {
+      await this.threeCanvas.attachNails();
+    }
+  }
+
+  private onRequestDetach() {
+    if (this.threeCanvas) {
+      this.threeCanvas.detachNails();
+    }
+  }
+
+  private onSelectFinger(fingerId: FingerId) {
+    // 選択された指先へ自動でカメラを寄せる
+    if (this.threeCanvas) {
+      this.threeCanvas.focusFinger(fingerId);
+    }
+  }
+
+  private onFocusFinger(fingerId: FingerId) {
+    if (this.threeCanvas) {
+      this.threeCanvas.focusFinger(fingerId);
+    }
+  }
+
+  private onTransformChange(payload: { fingerId: FingerId; key: keyof NailTransform; value: number }) {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateNailTransform(payload);
+    }
+  }
+
+  private onResetTransform(fingerId: FingerId) {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateNailTransform({ fingerId });
+    }
+  }
+
+  private onApplyAllTransform() {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateAllNailTransforms();
+    }
+  }
+
+  private onMorphChange(payload: { fingerId: FingerId; name: string; value: number }) {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateNailMorph(payload);
+    }
+  }
+
+  private onMorphReset(fingerId: FingerId) {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateNailMorph({ fingerId });
+    }
   }
 }
 </script>

@@ -233,6 +233,24 @@ export class SceneManager {
     }
   }
 
+  /**
+   * 指定したワールド座標（指先など）へカメラターゲットと位置をズームフォーカス
+   */
+  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.16): void {
+    this.controls.target.copy(targetPosition);
+    const isTop = this.currentAngle === 'top';
+    if (isTop) {
+      this.camera.position.set(targetPosition.x, targetPosition.y + distance, targetPosition.z + 0.001);
+    } else {
+      this.camera.position.set(
+        targetPosition.x,
+        targetPosition.y + distance * 0.35,
+        targetPosition.z + distance * 0.92
+      );
+    }
+    this.controls.update();
+  }
+
   public toggleGrid(visible?: boolean): boolean {
     if (visible !== undefined) {
       this.gridHelper.visible = visible;
