@@ -8,10 +8,10 @@
         <span class="editor-header__tag">Alpha</span>
       </div>
       <div class="editor-header__actions">
-        <button class="btn btn--secondary" disabled>
+        <button class="btn btn--secondary" @click="showAboutModal = true">
           <span>ヘルプ</span>
         </button>
-        <button class="btn btn--primary" disabled>
+        <button class="btn btn--primary" :disabled="!hasModel">
           <span>VRM エクスポート</span>
         </button>
       </div>
@@ -19,41 +19,185 @@
 
     <!-- Main Workspace -->
     <div class="editor-workspace">
-      <!-- 3D Viewport Placeholder -->
+      <!-- 3D Viewport Area -->
       <main class="editor-viewport">
-        <div class="editor-viewport__placeholder">
-          <div class="editor-viewport__icon">🎨</div>
-          <h2 class="editor-viewport__heading">3D ビューアー準備中</h2>
-          <p class="editor-viewport__description">
-            VRM モデルをドラッグ＆ドロップするか、サイドバーから選択してください
-          </p>
-        </div>
+        <ThreeCanvas ref="threeCanvas" @vrm-loaded="onVrmLoaded" />
       </main>
 
-      <!-- Sidebar Controls Placeholder -->
+      <!-- Sidebar Controls -->
       <aside class="editor-sidebar">
+        <!-- Section 1: Avatar Load -->
         <div class="editor-sidebar__section">
-          <h3 class="editor-sidebar__title">アバター読み込み</h3>
-          <p class="editor-sidebar__hint">VRM (0.x / 1.0) を選択してください</p>
-          <button class="btn btn--secondary" style="width: 100%;">
-            ファイルを選択
-          </button>
+          <div class="section-header">
+            <h3 class="section-title">アバター読み込み</h3>
+            <span v-if="hasModel" class="badge badge--success">読込済</span>
+          </div>
+
+          <!-- File Upload Button -->
+          <div class="upload-box">
+            <input
+              ref="fileInput"
+              type="file"
+              accept=".vrm"
+              style="display: none;"
+              @change="onFileSelected"
+            />
+            <button class="btn btn--secondary btn--full" @click="triggerFileInput">
+              <span>📁 ローカル VRM を開く</span>
+            </button>
+            <p class="upload-box__hint">または 3D エリアに直接ドラッグ＆ドロップ</p>
+          </div>
+
+          <!-- Preset Test Models Selector -->
+          <div class="preset-selector">
+            <label class="preset-selector__label">テスト用プリセットモデル:</label>
+            <div class="preset-grid">
+              <button
+                v-for="preset in presetModels"
+                :key="preset.id"
+                class="preset-card"
+                :class="{ 'preset-card--active': currentModelName === preset.name }"
+                @click="loadPreset(preset)"
+              >
+                <span class="preset-card__icon">👤</span>
+                <div class="preset-card__info">
+                  <span class="preset-card__name">{{ preset.name }}</span>
+                  <span class="preset-card__ver">{{ preset.version }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- Section 2: Avatar Information -->
+        <div v-if="hasModel && currentMeta" class="editor-sidebar__section">
+          <h3 class="section-title">モデル情報</h3>
+          <div class="meta-list">
+            <div class="meta-item">
+              <span class="meta-item__key">タイトル:</span>
+              <span class="meta-item__value">{{ currentMeta.title }}</span>
+            </div>
+            <div v-if="currentMeta.authors" class="meta-item">
+              <span class="meta-item__key">作者:</span>
+              <span class="meta-item__value">{{ currentMeta.authors }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-item__key">規格:</span>
+              <span class="meta-item__value">VRM {{ currentMeta.vrmFormatVersion }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Nail Controls (Next Phase Placeholder) -->
         <div class="editor-sidebar__section">
-          <h3 class="editor-sidebar__title">ネイル設定</h3>
-          <p class="editor-sidebar__hint">アバター読み込み後に有効化されます</p>
+          <div class="section-header">
+            <h3 class="section-title">ネイル設定</h3>
+            <span class="badge" :class="hasModel ? 'badge--info' : 'badge--muted'">
+              {{ hasModel ? '準備完了' : 'アバター待機' }}
+            </span>
+          </div>
+          <p v-if="!hasModel" class="editor-sidebar__hint">
+            アバターを読み込むと、指先ボーンへのネイル自動装着やテクスチャ差し替えが利用可能になります。
+          </p>
+          <div v-else class="nail-placeholder">
+            <p class="nail-placeholder__text">
+              ✨ アバターが読み込まれました。フェーズ 3 でネイルチップ自動装着エンジンがここに展開されます。
+            </p>
+          </div>
         </div>
       </aside>
+    </div>
+
+    <!-- About Modal -->
+    <div v-if="showAboutModal" class="modal-backdrop" @click.self="showAboutModal = false">
+      <div class="modal-card">
+        <h2 class="modal-card__title">VRMNailAttacher について</h2>
+        <p class="modal-card__body">
+          VRM アバターにネイルチップ（爪の 3D モデル）を自動装着し、テクスチャ差し替えや質感調整ができる Web ツールです。
+        </p>
+        <div class="modal-card__shortcuts">
+          <h4>操作方法</h4>
+          <ul>
+            <li><strong>左ドラッグ</strong>: カメラ回転</li>
+            <li><strong>右ドラッグ</strong>: カメラ移動（パン）</li>
+            <li><strong>ホイールスクロール</strong>: ズームイン / アウト</li>
+          </ul>
+        </div>
+        <button class="btn btn--primary btn--full" @click="showAboutModal = false">
+          閉じる
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Ref } from 'vue-property-decorator';
+import ThreeCanvas from '@/components/Viewer/ThreeCanvas.vue';
+import { PresetModel } from '@/store';
+import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
 
-@Component
-export default class EditorView extends Vue {}
+@Component({
+  components: {
+    ThreeCanvas
+  }
+})
+export default class EditorView extends Vue {
+  @Ref('threeCanvas') readonly threeCanvas!: ThreeCanvas;
+  @Ref('fileInput') readonly fileInput!: HTMLInputElement;
+
+  private showAboutModal = false;
+
+  get hasModel(): boolean {
+    return this.$store.getters.hasModel;
+  }
+
+  get currentModelName(): string | null {
+    return this.$store.state.currentModelName;
+  }
+
+  get currentMeta(): VRMModelMeta | null {
+    return this.$store.state.currentMeta;
+  }
+
+  get presetModels(): PresetModel[] {
+    return this.$store.state.presetModels;
+  }
+
+  mounted() {
+    // 初期表示時に最初のプリセットモデル（Aki）を自動読み込み
+    this.$nextTick(() => {
+      if (this.presetModels.length > 0 && !this.hasModel) {
+        this.loadPreset(this.presetModels[0]);
+      }
+    });
+  }
+
+  private triggerFileInput() {
+    if (this.fileInput) {
+      this.fileInput.click();
+    }
+  }
+
+  private onFileSelected(e: Event) {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const file = target.files[0];
+      this.threeCanvas.loadModelFromFile(file);
+      target.value = ''; // リセット
+    }
+  }
+
+  private loadPreset(preset: PresetModel) {
+    if (this.threeCanvas) {
+      this.threeCanvas.loadModelFromUrl(preset.path, preset.name);
+    }
+  }
+
+  private onVrmLoaded(payload: { vrm: any; meta: VRMModelMeta }) {
+    console.log('VRM successfully loaded:', payload.meta);
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -65,6 +209,7 @@ export default class EditorView extends Vue {}
   background-color: $bg-primary;
 }
 
+/* Header */
 .editor-header {
   height: 56px;
   background-color: $bg-secondary;
@@ -110,6 +255,7 @@ export default class EditorView extends Vue {}
   }
 }
 
+/* Main Workspace */
 .editor-workspace {
   flex: 1;
   display: flex;
@@ -121,46 +267,20 @@ export default class EditorView extends Vue {}
   flex: 1;
   height: 100%;
   position: relative;
-  background: radial-gradient(circle at center, #1e222d 0%, #121316 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &__placeholder {
-    text-align: center;
-    max-width: 400px;
-    padding: $space-xl;
-  }
-
-  &__icon {
-    font-size: 3rem;
-    margin-bottom: $space-md;
-  }
-
-  &__heading {
-    font-size: $font-size-xl;
-    font-weight: 600;
-    margin-bottom: $space-sm;
-    color: $text-primary;
-  }
-
-  &__description {
-    font-size: $font-size-sm;
-    color: $text-secondary;
-    line-height: 1.6;
-  }
+  background-color: #131418;
 }
 
+/* Sidebar */
 .editor-sidebar {
   width: 360px;
   height: 100%;
   background-color: $bg-secondary;
   border-left: 1px solid $border-subtle;
   overflow-y: auto;
-  padding: $space-lg;
+  padding: $space-md;
   display: flex;
   flex-direction: column;
-  gap: $space-lg;
+  gap: $space-md;
 
   &__section {
     background-color: $bg-tertiary;
@@ -169,17 +289,230 @@ export default class EditorView extends Vue {}
     padding: $space-md;
   }
 
-  &__title {
-    font-size: $font-size-sm;
-    font-weight: 600;
-    color: $text-primary;
-    margin-bottom: $space-xs;
-  }
-
   &__hint {
     font-size: $font-size-xs;
     color: $text-muted;
+    line-height: 1.6;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-sm;
+}
+
+.section-title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+/* Badges */
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  font-weight: 600;
+
+  &--success {
+    background: rgba(16, 185, 129, 0.2);
+    color: $color-success;
+  }
+
+  &--info {
+    background: rgba(56, 189, 248, 0.2);
+    color: $accent-blue;
+  }
+
+  &--muted {
+    background: rgba(100, 116, 139, 0.2);
+    color: $text-muted;
+  }
+}
+
+/* Upload Box */
+.upload-box {
+  margin-bottom: $space-md;
+
+  &__hint {
+    font-size: 11px;
+    color: $text-muted;
+    text-align: center;
+    margin-top: $space-xs;
+  }
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* Preset Models Grid */
+.preset-selector {
+  &__label {
+    display: block;
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    margin-bottom: $space-xs;
+    font-weight: 500;
+  }
+}
+
+.preset-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-card {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: 8px 12px;
+  background: $bg-secondary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  text-align: left;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $bg-elevated;
+    border-color: $border-medium;
+  }
+
+  &--active {
+    background: rgba(255, 101, 132, 0.15);
+    border-color: $accent-pink;
+
+    .preset-card__name {
+      color: $accent-pink;
+      font-weight: 600;
+    }
+  }
+
+  &__icon {
+    font-size: 1.1rem;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__name {
+    font-size: $font-size-xs;
+    color: $text-primary;
+  }
+
+  &__ver {
+    font-size: 10px;
+    padding: 1px 6px;
+    background: $bg-tertiary;
+    border-radius: $radius-sm;
+    color: $text-muted;
+  }
+}
+
+/* Meta list */
+.meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  font-size: $font-size-xs;
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+
+  &__key {
+    color: $text-muted;
+  }
+
+  &__value {
+    color: $text-primary;
+    font-weight: 500;
+    max-width: 180px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+/* Nail Placeholder */
+.nail-placeholder {
+  padding: $space-sm;
+  background: rgba(255, 101, 132, 0.08);
+  border: 1px dashed rgba(255, 101, 132, 0.3);
+  border-radius: $radius-md;
+
+  &__text {
+    font-size: $font-size-xs;
+    color: $accent-pink;
+    line-height: 1.5;
+  }
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  background: $bg-secondary;
+  border: 1px solid $border-medium;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: $shadow-lg;
+
+  &__title {
+    font-size: $font-size-lg;
+    color: $text-primary;
+    margin-bottom: $space-sm;
+  }
+
+  &__body {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    line-height: 1.6;
     margin-bottom: $space-md;
+  }
+
+  &__shortcuts {
+    background: $bg-tertiary;
+    padding: $space-md;
+    border-radius: $radius-md;
+    margin-bottom: $space-lg;
+
+    h4 {
+      font-size: $font-size-xs;
+      color: $text-primary;
+      margin-bottom: $space-xs;
+    }
+
+    ul {
+      list-style: none;
+      font-size: $font-size-xs;
+      color: $text-secondary;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   }
 }
 </style>
