@@ -33,7 +33,7 @@ export class SceneManager {
 
     // 2. Camera
     const aspect = container.clientWidth / (container.clientHeight || 1);
-    this.camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 50.0);
+    this.camera = new THREE.PerspectiveCamera(40, aspect, 0.005, 50.0);
     this.camera.position.set(0, 1.25, 1.6);
 
     // 3. Renderer
@@ -52,7 +52,7 @@ export class SceneManager {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.target.set(0, 1.15, 0);
-    this.controls.minDistance = 0.05;
+    this.controls.minDistance = 0.01;
     this.controls.maxDistance = 15.0;
     this.controls.maxPolarAngle = Math.PI / 2 + 0.2;
 

@@ -63,8 +63,9 @@ export class NailAttacher {
 
       // 先端位置 (ボーン起点 + 前方オフセット + 背側高さオフセット)
       // ネイルの根元(Y=0)が甘皮付近に配置され、先端(12mm / 親指10.8mm)が指先へ伸びるように調整
+      // 自然なハンド用ネイルモデルに合わせて指表面にフィットする高さ（指: 1.0mm, 親指: 2.0mm）
       const forwardOffset = boneInfo.length * (isThumb ? 0.38 : 0.52);
-      const heightOffset = isThumb ? 0.0035 : 0.0025;
+      const heightOffset = isThumb ? 0.0020 : 0.0010;
       const targetWorldPos = boneInfo.worldPosition.clone()
         .addScaledVector(fwd, forwardOffset)
         .addScaledVector(up, heightOffset);
