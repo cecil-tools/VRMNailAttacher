@@ -156,12 +156,12 @@ export class VRMLoader {
       if (rightLowerArm) rightLowerArm.rotation.set(0.0, 0.65, 0.0);
     } else {
       // VRM 0.x:
-      // 内部NormalizedBoneが 180度反転しているため符号が逆
-      // 左腕: Z軸正で下、Y軸正で前 / 右腕: Z軸負で下、Y軸負で前
-      if (leftUpperArm) leftUpperArm.rotation.set(0.0, 0.25, 1.05);
-      if (rightUpperArm) rightUpperArm.rotation.set(0.0, -0.25, -1.05);
-      if (leftLowerArm) leftLowerArm.rotation.set(0.0, 0.65, 0.0);
-      if (rightLowerArm) rightLowerArm.rotation.set(0.0, -0.65, 0.0);
+      // 上下（Z軸）のみ符号反転（左腕はZ軸正で下、右腕はZ軸負で下）
+      // 前後・肘曲げ（Y軸）は 0.x でも 1.0 と同じ（左腕・左肘はY軸負で前、右腕・右肘はY軸正で前）
+      if (leftUpperArm) leftUpperArm.rotation.set(0.0, -0.25, 1.05);
+      if (rightUpperArm) rightUpperArm.rotation.set(0.0, 0.25, -1.05);
+      if (leftLowerArm) leftLowerArm.rotation.set(0.0, -0.65, 0.0);
+      if (rightLowerArm) rightLowerArm.rotation.set(0.0, 0.65, 0.0);
     }
 
     // 手首を自然に安定
