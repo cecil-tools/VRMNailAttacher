@@ -56,3 +56,6 @@ ui-debug.log*
 .temp/
 tmp/
 .eslintcache
+
+# MDollnail は 仮実装用なのでコミット対象にしない
+MDollnail/
