@@ -90,15 +90,39 @@ export class BoneDetector {
         }
       }
 
-      // 手ボーンから背側（爪の表面）の法線ベクトルを推定
-      const dorsalDir = new THREE.Vector3(0, 1, 0);
+      // 手ボーンから背側（手の甲の表面）の基準法線ベクトルを取得
+      const handDorsal = new THREE.Vector3(0, 1, 0);
       const handBoneName: VRMHumanBoneName = def.side === 'left' ? 'leftHand' : 'rightHand';
       const handNode = vrm.humanoid.getRawBoneNode(handBoneName);
       if (handNode) {
         handNode.updateWorldMatrix(true, false);
         const handQuat = new THREE.Quaternion();
         handNode.getWorldQuaternion(handQuat);
-        dorsalDir.applyQuaternion(handQuat).normalize();
+        handDorsal.applyQuaternion(handQuat).normalize();
+      }
+
+      // 各指の背側法線（爪の表面法線）を推定
+      let dorsalDir: THREE.Vector3;
+      if (def.type === 'thumb') {
+        // 親指は手のひらに対し対向（約70〜90°捻れている）しているため、専用ロジックで算出
+        // 1. 手の甲法線と親指進行ベクトルの外積による幾何学的背側ベクトル
+        const geomThumbDorsal = (def.side === 'left')
+          ? new THREE.Vector3().crossVectors(dir, handDorsal).normalize()
+          : new THREE.Vector3().crossVectors(handDorsal, dir).normalize();
+
+        // 2. ボーン自身のローカル +Y 軸（VRM仕様では手の甲側法線）
+        const boneLocalY = new THREE.Vector3(0, 1, 0).applyQuaternion(worldQuat).normalize();
+
+        // ボーンローカル +Y が幾何学的方向と整合していればボーンの姿勢を最優先使用、
+        // VRM 0.x や未正規化モデル等でズレがある場合は幾何ベクトルを採用
+        if (boneLocalY.dot(geomThumbDorsal) > 0.5) {
+          dorsalDir = boneLocalY;
+        } else {
+          dorsalDir = geomThumbDorsal;
+        }
+      } else {
+        // 人差し指〜小指の4指は手の甲の法線平面と一致
+        dorsalDir = handDorsal.clone();
       }
 
       // 指先推定位置

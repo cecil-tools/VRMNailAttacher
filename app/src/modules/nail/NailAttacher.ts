@@ -47,7 +47,6 @@ export class NailAttacher {
       }
 
       const boneNode = boneInfo.boneNode;
-      const side = FINGER_DEFINITIONS[fingerId].side;
       const isThumb = FINGER_DEFINITIONS[fingerId].type === 'thumb';
 
       // 1. Anchor のワールド姿勢（基底ベクトル）を算出
@@ -63,18 +62,12 @@ export class NailAttacher {
       const targetWorldQuat = new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
 
       // 先端位置 (ボーン起点 + 前方オフセット + 背側高さオフセット)
-      // ネイルの根元(Y=0)が甘皮付近(関節〜指先の約50%)に配置され、先端(12mm)が指先へ伸びるように調整
-      const forwardOffset = boneInfo.length * (isThumb ? 0.45 : 0.52);
-      const heightOffset = isThumb ? 0.003 : 0.0025;
+      // ネイルの根元(Y=0)が甘皮付近に配置され、先端(12mm / 親指10.8mm)が指先へ伸びるように調整
+      const forwardOffset = boneInfo.length * (isThumb ? 0.38 : 0.52);
+      const heightOffset = isThumb ? 0.0035 : 0.0025;
       const targetWorldPos = boneInfo.worldPosition.clone()
         .addScaledVector(fwd, forwardOffset)
         .addScaledVector(up, heightOffset);
-
-      // 親指の場合の角度微調整
-      if (isThumb) {
-        const thumbTilt = THREE.MathUtils.degToRad(side === 'left' ? -25 : 25);
-        targetWorldQuat.multiply(new THREE.Quaternion().setFromAxisAngle(fwd, thumbTilt));
-      }
 
       // 2. boneNode のローカル空間への座標変換
       boneNode.updateWorldMatrix(true, false);
