@@ -1,0 +1,100 @@
+@import './variables';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: $font-family-base;
+  background-color: $bg-primary;
+  color: $text-primary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-primary;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $bg-elevated;
+  border-radius: $radius-full;
+
+  &:hover {
+    background: $text-muted;
+  }
+}
+
+/* Common Button Styles */
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+  transition: all $transition-fast;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: 8px 16px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+
+  &--primary {
+    background: $accent-gradient;
+    color: #ffffff;
+    box-shadow: $shadow-sm;
+
+    &:hover:not(:disabled) {
+      box-shadow: $glow-pink;
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+
+  &--secondary {
+    background: $bg-tertiary;
+    color: $text-primary;
+    border: 1px solid $border-subtle;
+
+    &:hover:not(:disabled) {
+      background: $bg-elevated;
+      border-color: $border-medium;
+    }
+  }
+}
