@@ -114,6 +114,22 @@ export class VRMLoader {
   }
 
   /**
+   * 標準 T-Pose を適用（すべての正規化ボーン回転を 0 にリセット）
+   */
+  public applyTPose(vrm: VRM): void {
+    if (!vrm.humanoid) return;
+
+    // 全ボーンの回転をアイデンティティ（0, 0, 0）にリセット
+    const allBoneNames = Object.keys(vrm.humanoid.humanBones) as any[];
+    for (const boneName of allBoneNames) {
+      const bone = vrm.humanoid.getNormalizedBoneNode(boneName);
+      if (bone) {
+        bone.rotation.set(0, 0, 0);
+      }
+    }
+  }
+
+  /**
    * ネイル作業に適したポーズ（両腕を少し前・下に下ろし、指をリラックスして伸ばすポーズ）を設定
    */
   public applyNailInspectionPose(vrm: VRM): void {

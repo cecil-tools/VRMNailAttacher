@@ -78,6 +78,27 @@
       <div class="toolbar-group">
         <button
           class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': currentPose === 'tpose' }"
+          title="標準 T-Pose"
+          @click="setPose('tpose')"
+        >
+          <span>🧍 Tポーズ</span>
+        </button>
+        <button
+          class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': currentPose === 'nail' }"
+          title="手開きリラックスポーズ"
+          @click="setPose('nail')"
+        >
+          <span>👐 手開き</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <button
+          class="toolbar-btn"
           :class="{ 'toolbar-btn--active': gridVisible }"
           title="グリッド表示切り替え"
           @click="toggleGrid"
@@ -102,7 +123,8 @@ export default class ThreeCanvas extends Vue {
   private sceneManager: SceneManager | null = null;
   private vrmLoader: VRMLoader = new VRMLoader();
   private isDragging = false;
-  private currentPreset: CameraPreset = 'hands';
+  private currentPreset: CameraPreset = 'upper';
+  private currentPose: 'tpose' | 'nail' = 'tpose';
   private gridVisible = true;
 
   get isLoading(): boolean {
@@ -136,8 +158,8 @@ export default class ThreeCanvas extends Vue {
       }
     });
 
-    // 初期カメラを「手元フォーカス」に設定
-    this.sceneManager.setCameraPreset('hands');
+    // 初期カメラを「上半身（Tポーズ）」に設定
+    this.sceneManager.setCameraPreset('upper');
   }
 
   public async loadModelFromUrl(url: string, name: string): Promise<VRM | null> {
@@ -164,8 +186,9 @@ export default class ThreeCanvas extends Vue {
         });
       });
 
-      // ネイル確認用ポーズを適用してシーンに追加
-      this.vrmLoader.applyNailInspectionPose(vrm);
+      // 初期値は T-Pose を適用してシーンに追加
+      this.currentPose = 'tpose';
+      this.vrmLoader.applyTPose(vrm);
       this.sceneManager.scene.add(vrm.scene);
 
       // メタ情報をストアに登録
@@ -206,7 +229,9 @@ export default class ThreeCanvas extends Vue {
         });
       });
 
-      this.vrmLoader.applyNailInspectionPose(vrm);
+      // 初期値は T-Pose を適用してシーンに追加
+      this.currentPose = 'tpose';
+      this.vrmLoader.applyTPose(vrm);
       this.sceneManager.scene.add(vrm.scene);
 
       const meta = this.vrmLoader.extractMeta(vrm);
@@ -223,6 +248,17 @@ export default class ThreeCanvas extends Vue {
     }
   }
 
+  public setPose(pose: 'tpose' | 'nail') {
+    this.currentPose = pose;
+    const vrm = this.vrmLoader.currentVRM;
+    if (!vrm) return;
+
+    if (pose === 'tpose') {
+      this.vrmLoader.applyTPose(vrm);
+    } else {
+      this.vrmLoader.applyNailInspectionPose(vrm);
+    }
+  }
   public changeCamera(preset: CameraPreset) {
     this.currentPreset = preset;
     if (this.sceneManager) {

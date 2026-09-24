@@ -109,24 +109,24 @@ export class SceneManager {
   public setCameraPreset(preset: CameraPreset): void {
     switch (preset) {
       case 'full':
-        this.camera.position.set(0, 1.0, 2.6);
+        this.camera.position.set(0, 1.0, 2.8);
         this.controls.target.set(0, 0.9, 0);
         break;
       case 'upper':
-        this.camera.position.set(0, 1.3, 1.2);
-        this.controls.target.set(0, 1.25, 0);
+        this.camera.position.set(0, 1.25, 1.6);
+        this.controls.target.set(0, 1.2, 0);
         break;
       case 'hands':
-        this.camera.position.set(0, 0.9, 0.7);
-        this.controls.target.set(0, 0.85, 0.1);
+        this.camera.position.set(0, 1.2, 1.5);
+        this.controls.target.set(0, 1.15, 0);
         break;
       case 'leftHand':
-        this.camera.position.set(-0.35, 0.9, 0.5);
-        this.controls.target.set(-0.35, 0.85, 0.1);
+        this.camera.position.set(-0.6, 1.25, 0.45);
+        this.controls.target.set(-0.55, 1.2, 0);
         break;
       case 'rightHand':
-        this.camera.position.set(0.35, 0.9, 0.5);
-        this.controls.target.set(0.35, 0.85, 0.1);
+        this.camera.position.set(0.6, 1.25, 0.45);
+        this.controls.target.set(0.55, 1.2, 0);
         break;
     }
     this.controls.update();
