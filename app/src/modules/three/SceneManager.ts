@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-export type CameraPreset = 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand';
+export type CameraPreset = 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand' | 'top';
 
 export class SceneManager {
   private container: HTMLElement;
@@ -127,6 +127,10 @@ export class SceneManager {
       case 'rightHand':
         this.camera.position.set(0.6, 1.25, 0.45);
         this.controls.target.set(0.55, 1.2, 0);
+        break;
+      case 'top':
+        this.camera.position.set(0, 2.5, 0.05);
+        this.controls.target.set(0, 1.1, 0);
         break;
     }
     this.controls.update();

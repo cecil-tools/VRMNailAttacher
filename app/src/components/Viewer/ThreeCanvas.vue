@@ -71,6 +71,14 @@
         >
           <span>全身</span>
         </button>
+        <button
+          class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': currentPreset === 'top' }"
+          title="真上から見下ろす（俯瞰）"
+          @click="changeCamera('top')"
+        >
+          <span>🔝 真上</span>
+        </button>
       </div>
 
       <div class="toolbar-divider"></div>

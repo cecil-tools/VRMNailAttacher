@@ -18,7 +18,7 @@ export interface RootState {
   loadingProgress: number;
   loadingMessage: string;
   presetModels: PresetModel[];
-  cameraPreset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand';
+  cameraPreset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand' | 'top';
   showGrid: boolean;
 }
 
@@ -82,7 +82,7 @@ export default new Vuex.Store<RootState>({
       state.loadingProgress = payload.progress ?? 0;
       state.loadingMessage = payload.message || '';
     },
-    setCameraPreset(state, preset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand') {
+    setCameraPreset(state, preset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand' | 'top') {
       state.cameraPreset = preset;
     },
     setShowGrid(state, show: boolean) {
