@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
+import { nailModule, NailState } from './modules/nail';
 
 Vue.use(Vuex);
 
@@ -20,6 +21,7 @@ export interface RootState {
   presetModels: PresetModel[];
   cameraPreset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand' | 'top';
   showGrid: boolean;
+  nail?: NailState;
 }
 
 export default new Vuex.Store<RootState>({
@@ -90,5 +92,7 @@ export default new Vuex.Store<RootState>({
     }
   },
   actions: {},
-  modules: {}
+  modules: {
+    nail: nailModule
+  }
 });
