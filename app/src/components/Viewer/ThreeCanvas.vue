@@ -30,52 +30,67 @@
 
     <!-- Viewport Controls Overlay (Floating) -->
     <div class="viewport-toolbar">
+      <!-- Target Focus Group -->
       <div class="toolbar-group">
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'hands' }"
-          title="手元・ネイルフォーカス"
-          @click="changeCamera('hands')"
+          :class="{ 'toolbar-btn--active': currentFocus === 'hands' }"
+          title="両手・ネイルフォーカス"
+          @click="changeFocus('hands')"
         >
           <span>💅 手元</span>
         </button>
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'leftHand' }"
+          :class="{ 'toolbar-btn--active': currentFocus === 'leftHand' }"
           title="左手フォーカス"
-          @click="changeCamera('leftHand')"
+          @click="changeFocus('leftHand')"
         >
-          <span>左手</span>
+          <span>👈 左手</span>
         </button>
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'rightHand' }"
+          :class="{ 'toolbar-btn--active': currentFocus === 'rightHand' }"
           title="右手フォーカス"
-          @click="changeCamera('rightHand')"
+          @click="changeFocus('rightHand')"
         >
-          <span>右手</span>
+          <span>👉 右手</span>
         </button>
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'upper' }"
+          :class="{ 'toolbar-btn--active': currentFocus === 'upper' }"
           title="上半身"
-          @click="changeCamera('upper')"
+          @click="changeFocus('upper')"
         >
           <span>上半身</span>
         </button>
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'full' }"
+          :class="{ 'toolbar-btn--active': currentFocus === 'full' }"
           title="全身"
-          @click="changeCamera('full')"
+          @click="changeFocus('full')"
         >
           <span>全身</span>
         </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- View Angle Group (Normal vs Top) -->
+      <div class="toolbar-group">
         <button
           class="toolbar-btn"
-          :class="{ 'toolbar-btn--active': currentPreset === 'top' }"
-          title="真上から見下ろす（俯瞰）"
-          @click="changeCamera('top')"
+          :class="{ 'toolbar-btn--active': currentAngle === 'normal' }"
+          title="斜め正面アングル"
+          @click="changeAngle('normal')"
+        >
+          <span>👁 斜め</span>
+        </button>
+        <button
+          class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': currentAngle === 'top' }"
+          title="選択部位を真上から見下ろす（俯瞰）"
+          @click="changeAngle('top')"
         >
           <span>🔝 真上</span>
         </button>
@@ -120,7 +135,7 @@
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
-import { SceneManager, CameraPreset } from '@/modules/three/SceneManager';
+import { SceneManager, FocusTarget, ViewAngle, CameraPreset } from '@/modules/three/SceneManager';
 import { VRMLoader } from '@/modules/vrm/VRMLoader';
 import { VRM } from '@pixiv/three-vrm';
 
@@ -131,7 +146,8 @@ export default class ThreeCanvas extends Vue {
   private sceneManager: SceneManager | null = null;
   private vrmLoader: VRMLoader = new VRMLoader();
   private isDragging = false;
-  private currentPreset: CameraPreset = 'upper';
+  private currentFocus: FocusTarget = 'hands';
+  private currentAngle: ViewAngle = 'normal';
   private currentPose: 'tpose' | 'nail' = 'tpose';
   private gridVisible = true;
 
@@ -166,8 +182,8 @@ export default class ThreeCanvas extends Vue {
       }
     });
 
-    // 初期カメラを「上半身（Tポーズ）」に設定
-    this.sceneManager.setCameraPreset('upper');
+    // 初期カメラを現在のフォーカス（手元）とアングル（通常）に設定
+    this.sceneManager.updateCamera(this.currentFocus, this.currentAngle);
   }
 
   public async loadModelFromUrl(url: string, name: string): Promise<VRM | null> {
@@ -198,6 +214,7 @@ export default class ThreeCanvas extends Vue {
       this.currentPose = 'tpose';
       this.vrmLoader.applyTPose(vrm);
       this.sceneManager.scene.add(vrm.scene);
+      this.sceneManager.setVRM(vrm);
 
       // メタ情報をストアに登録
       const meta = this.vrmLoader.extractMeta(vrm);
@@ -241,6 +258,7 @@ export default class ThreeCanvas extends Vue {
       this.currentPose = 'tpose';
       this.vrmLoader.applyTPose(vrm);
       this.sceneManager.scene.add(vrm.scene);
+      this.sceneManager.setVRM(vrm);
 
       const meta = this.vrmLoader.extractMeta(vrm);
       this.$store.commit('setModel', { name: file.name, meta });
@@ -266,11 +284,34 @@ export default class ThreeCanvas extends Vue {
     } else {
       this.vrmLoader.applyNailInspectionPose(vrm);
     }
+
+    // ポーズ変更に合わせてカメラターゲットを新ボーン位置に追従
+    this.$nextTick(() => {
+      if (this.sceneManager) {
+        this.sceneManager.updateCamera();
+      }
+    });
   }
-  public changeCamera(preset: CameraPreset) {
-    this.currentPreset = preset;
+
+  public changeFocus(focus: FocusTarget) {
+    this.currentFocus = focus;
     if (this.sceneManager) {
-      this.sceneManager.setCameraPreset(preset);
+      this.sceneManager.updateCamera(focus, this.currentAngle);
+    }
+  }
+
+  public changeAngle(angle: ViewAngle) {
+    this.currentAngle = angle;
+    if (this.sceneManager) {
+      this.sceneManager.updateCamera(this.currentFocus, angle);
+    }
+  }
+
+  public changeCamera(preset: CameraPreset) {
+    if (preset === 'top') {
+      this.changeAngle('top');
+    } else {
+      this.changeFocus(preset as FocusTarget);
     }
   }
 
