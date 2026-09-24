@@ -98,6 +98,8 @@
             @transform-change="onTransformChange"
             @reset-transform="onResetTransform"
             @apply-all-transform="onApplyAllTransform"
+            @global-scale-change="onGlobalScaleChange"
+            @reset-global-scale="onResetGlobalScale"
             @morph-change="onMorphChange"
             @morph-reset="onMorphReset"
           />
@@ -236,6 +238,18 @@ export default class EditorView extends Vue {
   }
 
   private onApplyAllTransform() {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateAllNailTransforms();
+    }
+  }
+
+  private onGlobalScaleChange() {
+    if (this.threeCanvas) {
+      this.threeCanvas.updateAllNailTransforms();
+    }
+  }
+
+  private onResetGlobalScale() {
     if (this.threeCanvas) {
       this.threeCanvas.updateAllNailTransforms();
     }

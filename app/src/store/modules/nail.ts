@@ -10,11 +10,19 @@ import {
   createDefaultTransform
 } from '@/modules/nail/types';
 
+export interface GlobalScale {
+  scaleAll: number;
+  scaleLength: number;
+  scaleWidth: number;
+  scaleThickness: number;
+}
+
 export interface NailState {
   isAttached: boolean;
   isLoading: boolean;
   selectedFinger: FingerSelection;
   symmetrySync: boolean;
+  globalScale: GlobalScale;
   configs: Record<FingerId, FingerNailConfig>;
   availableMorphNames: string[];
 }
@@ -50,6 +58,12 @@ export const nailModule: Module<NailState, RootState> = {
     isLoading: false,
     selectedFinger: 'leftIndex',
     symmetrySync: true,
+    globalScale: {
+      scaleAll: 1.0,
+      scaleLength: 1.0,
+      scaleWidth: 1.0,
+      scaleThickness: 1.0
+    },
     configs: createInitialConfigs(),
     availableMorphNames: ['flat', 'curl', 'curl_front', 'curl_back']
   },
@@ -147,6 +161,36 @@ export const nailModule: Module<NailState, RootState> = {
         }
       }
     },
+    updateGlobalScale(
+      state,
+      payload: { key: keyof GlobalScale; value: number }
+    ) {
+      const { key, value } = payload;
+      state.globalScale[key] = value;
+      for (const id of ALL_FINGER_IDS) {
+        const target = state.configs[id];
+        if (target) {
+          target.transform[key] = value;
+        }
+      }
+    },
+    resetGlobalScale(state) {
+      state.globalScale = {
+        scaleAll: 1.0,
+        scaleLength: 1.0,
+        scaleWidth: 1.0,
+        scaleThickness: 1.0
+      };
+      for (const id of ALL_FINGER_IDS) {
+        const target = state.configs[id];
+        if (target) {
+          target.transform.scaleAll = 1.0;
+          target.transform.scaleLength = 1.0;
+          target.transform.scaleWidth = 1.0;
+          target.transform.scaleThickness = 1.0;
+        }
+      }
+    },
     resetFingerTransform(state, fingerId?: FingerId) {
       if (fingerId) {
         state.configs[fingerId].transform = createDefaultTransform();
@@ -155,6 +199,12 @@ export const nailModule: Module<NailState, RootState> = {
           state.configs[opp].transform = createDefaultTransform();
         }
       } else {
+        state.globalScale = {
+          scaleAll: 1.0,
+          scaleLength: 1.0,
+          scaleWidth: 1.0,
+          scaleThickness: 1.0
+        };
         for (const id of ALL_FINGER_IDS) {
           state.configs[id].transform = createDefaultTransform();
           state.configs[id].morphs = {};

@@ -28,6 +28,12 @@
 
     <!-- Active Nail Controls -->
     <div v-else-if="isAttached" class="panel-content">
+      <!-- Global Scale Controls (全指一括サイズ調整) -->
+      <GlobalScaleControl
+        @global-scale-change="onGlobalScaleChange"
+        @reset-global-scale="onResetGlobalScale"
+      />
+
       <!-- Finger Selector -->
       <FingerSelector
         @select-finger="onSelectFinger"
@@ -66,6 +72,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import GlobalScaleControl from './GlobalScaleControl.vue';
 import FingerSelector from './FingerSelector.vue';
 import TransformControl from './TransformControl.vue';
 import MorphControl from './MorphControl.vue';
@@ -73,6 +80,7 @@ import { FingerId, NailTransform } from '@/modules/nail/types';
 
 @Component({
   components: {
+    GlobalScaleControl,
     FingerSelector,
     TransformControl,
     MorphControl
@@ -126,6 +134,14 @@ export default class NailControlPanel extends Vue {
 
   private onApplyAllTransform(transform: NailTransform) {
     this.$emit('apply-all-transform', transform);
+  }
+
+  private onGlobalScaleChange(payload?: { key: string; value: number }) {
+    this.$emit('global-scale-change', payload);
+  }
+
+  private onResetGlobalScale() {
+    this.$emit('reset-global-scale');
   }
 
   private onMorphChange(payload: { fingerId: FingerId; name: string; value: number }) {
