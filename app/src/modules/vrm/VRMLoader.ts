@@ -135,23 +135,36 @@ export class VRMLoader {
   public applyNailInspectionPose(vrm: VRM): void {
     if (!vrm.humanoid) return;
 
-    // 腕を自然に斜め前・下へ下ろす (VRM 1.0 / 0.x 正規化ボーン準拠)
-    // 左腕: Z軸負で下、Y軸負で前
-    // 右腕: Z軸正で下、Y軸正で前
+    // VRM 0.x と 1.0 の座標系（正規化ボーン初期向き）の判定
+    // VRM 0.x ではアバターが元々 -Z 向きでリグが生成されるため、正規化ボーンのY/Z回転極性が 1.0 と正反対（反転）になる
+    const rawMeta = vrm.meta as any;
+    const isV1 = rawMeta?.metaVersion === '1' || ('name' in (rawMeta || {}) && 'authors' in (rawMeta || {}));
+
     const leftUpperArm = vrm.humanoid.getNormalizedBoneNode('leftUpperArm');
     const rightUpperArm = vrm.humanoid.getNormalizedBoneNode('rightUpperArm');
-    if (leftUpperArm) leftUpperArm.rotation.set(0.0, -0.25, -1.05);
-    if (rightUpperArm) rightUpperArm.rotation.set(0.0, 0.25, 1.05);
-
-    // 肘を前方へ自然に曲げる
     const leftLowerArm = vrm.humanoid.getNormalizedBoneNode('leftLowerArm');
     const rightLowerArm = vrm.humanoid.getNormalizedBoneNode('rightLowerArm');
-    if (leftLowerArm) leftLowerArm.rotation.set(0.0, -0.65, 0.0);
-    if (rightLowerArm) rightLowerArm.rotation.set(0.0, 0.65, 0.0);
-
-    // 手首を自然に安定
     const leftHand = vrm.humanoid.getNormalizedBoneNode('leftHand');
     const rightHand = vrm.humanoid.getNormalizedBoneNode('rightHand');
+
+    if (isV1) {
+      // VRM 1.0:
+      // 左腕: Z軸負で下、Y軸負で前 / 右腕: Z軸正で下、Y軸正で前
+      if (leftUpperArm) leftUpperArm.rotation.set(0.0, -0.25, -1.05);
+      if (rightUpperArm) rightUpperArm.rotation.set(0.0, 0.25, 1.05);
+      if (leftLowerArm) leftLowerArm.rotation.set(0.0, -0.65, 0.0);
+      if (rightLowerArm) rightLowerArm.rotation.set(0.0, 0.65, 0.0);
+    } else {
+      // VRM 0.x:
+      // 内部NormalizedBoneが 180度反転しているため符号が逆
+      // 左腕: Z軸正で下、Y軸正で前 / 右腕: Z軸負で下、Y軸負で前
+      if (leftUpperArm) leftUpperArm.rotation.set(0.0, 0.25, 1.05);
+      if (rightUpperArm) rightUpperArm.rotation.set(0.0, -0.25, -1.05);
+      if (leftLowerArm) leftLowerArm.rotation.set(0.0, 0.65, 0.0);
+      if (rightLowerArm) rightLowerArm.rotation.set(0.0, -0.65, 0.0);
+    }
+
+    // 手首を自然に安定
     if (leftHand) leftHand.rotation.set(0.0, 0.0, 0.0);
     if (rightHand) rightHand.rotation.set(0.0, 0.0, 0.0);
 
