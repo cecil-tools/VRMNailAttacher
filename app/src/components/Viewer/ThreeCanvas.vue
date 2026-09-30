@@ -172,8 +172,8 @@ export default class ThreeCanvas extends Vue {
   private loadedNailAssets: Map<FingerId, LoadedNailAsset> | null = null;
 
   private isDragging = false;
-  private currentFocus: FocusTarget = 'hands';
-  private currentAngle: ViewAngle = 'normal';
+  private currentFocus: FocusTarget = 'fingertip';
+  private currentAngle: ViewAngle = 'top';
   private currentPose: 'tpose' | 'nail' = 'tpose';
   private gridVisible = true;
 
@@ -208,7 +208,9 @@ export default class ThreeCanvas extends Vue {
       }
     });
 
-    // 初期カメラを現在のフォーカス（手元）とアングル（通常）に設定
+    // 初期カメラを現在のフォーカス（指先）とアングル（真上）に設定
+    this.sceneManager.currentFocus = this.currentFocus;
+    this.sceneManager.currentAngle = this.currentAngle;
     this.sceneManager.updateCamera(this.currentFocus, this.currentAngle);
   }
 
@@ -257,6 +259,11 @@ export default class ThreeCanvas extends Vue {
         await this.attachNails();
       }
 
+      // アバター読み込み後の初期カメラ位置を「左手, 真上, 指先にフォーカス」に設定
+      const currentTarget = this.getCurrentTargetFingerId();
+      const targetFinger: FingerId = currentTarget.startsWith('left') ? currentTarget : 'leftIndex';
+      this.applyInitialCameraView(targetFinger);
+
       this.$emit('vrm-loaded', { vrm, meta });
       return vrm;
     } catch (err: any) {
@@ -304,6 +311,11 @@ export default class ThreeCanvas extends Vue {
       if (this.$store.state.nail?.isAttached) {
         await this.attachNails();
       }
+
+      // アバター読み込み後の初期カメラ位置を「左手, 真上, 指先にフォーカス」に設定
+      const currentTarget = this.getCurrentTargetFingerId();
+      const targetFinger: FingerId = currentTarget.startsWith('left') ? currentTarget : 'leftIndex';
+      this.applyInitialCameraView(targetFinger);
 
       this.$emit('vrm-loaded', { vrm, meta });
       return vrm;
@@ -505,6 +517,24 @@ export default class ThreeCanvas extends Vue {
         this.nailAttacher.updateMorphs(oppId, oppConfig.morphs);
       }
     }
+  }
+
+  /**
+   * アバター読み込み後の初期カメラ位置（左手・真上・指先にフォーカス）を設定
+   */
+  public applyInitialCameraView(fingerId?: FingerId): void {
+    if (!this.sceneManager) return;
+    const targetFinger: FingerId = fingerId || 'leftIndex';
+    this.$store.commit('nail/setSelectedFinger', targetFinger);
+    this.currentFocus = 'fingertip';
+    this.currentAngle = 'top';
+    this.sceneManager.currentFocus = 'fingertip';
+    this.sceneManager.currentAngle = 'top';
+
+    if (this.vrmLoader.currentVRM?.scene) {
+      this.vrmLoader.currentVRM.scene.updateMatrixWorld(true);
+    }
+    this.focusFinger(targetFinger);
   }
 
   /**

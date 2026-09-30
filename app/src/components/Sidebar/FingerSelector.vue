@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import { FingerId, HandSide, FINGER_DEFINITIONS } from '@/modules/nail/types';
 
 interface FingerItem {
@@ -96,6 +96,15 @@ export default class FingerSelector extends Vue {
     if (current.startsWith('right')) {
       this.activeHand = 'right';
     } else {
+      this.activeHand = 'left';
+    }
+  }
+
+  @Watch('$store.state.nail.selectedFinger')
+  private onSelectedFingerChange(newVal: string) {
+    if (newVal.startsWith('right')) {
+      this.activeHand = 'right';
+    } else if (newVal.startsWith('left')) {
       this.activeHand = 'left';
     }
   }

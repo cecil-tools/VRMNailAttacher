@@ -20,8 +20,8 @@ export class SceneManager {
   private updateCallbacks: Array<(delta: number) => void> = [];
 
   public currentVRM: VRM | null = null;
-  public currentFocus: FocusTarget = 'hands';
-  public currentAngle: ViewAngle = 'normal';
+  public currentFocus: FocusTarget = 'fingertip';
+  public currentAngle: ViewAngle = 'top';
 
   constructor(container: HTMLElement) {
     this.container = container;
