@@ -335,7 +335,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Ref } from 'vue-property-decorator';
+import { Component, Vue, Ref, Watch } from 'vue-property-decorator';
 import ThreeCanvas from '@/components/Viewer/ThreeCanvas.vue';
 import NailControlPanel from '@/components/Sidebar/NailControlPanel.vue';
 import ExportModal, { ExportFormPayload } from '@/components/Modal/ExportModal.vue';
@@ -490,17 +490,24 @@ export default class EditorView extends Vue {
   private showExportModal = false;
   private isExporting = false;
   private exportErrorMessage = '';
-
-  get attachedNailCount(): number {
-    return this.threeCanvas ? this.threeCanvas.getAttachedNailCount() : 0;
-  }
+  private attachedNailCount = 0;
 
   get currentMaterialType(): NailMaterialType {
     return this.$store.state.nail?.materialType || 'mtoon';
   }
 
+  @Watch('$store.state.nail.isAttached')
+  onIsAttachedChange(val: boolean) {
+    if (!val) {
+      this.attachedNailCount = 0;
+    } else if (this.threeCanvas) {
+      this.attachedNailCount = this.threeCanvas.getAttachedNailCount();
+    }
+  }
+
   private openExportModal(): void {
     this.exportErrorMessage = '';
+    this.attachedNailCount = this.threeCanvas ? this.threeCanvas.getAttachedNailCount() : 0;
     this.showExportModal = true;
   }
 
