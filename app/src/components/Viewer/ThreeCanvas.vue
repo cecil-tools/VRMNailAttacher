@@ -309,15 +309,18 @@ export default class ThreeCanvas extends Vue {
 
       // 初回のみモデルを全指一括読み込み
       if (!this.loadedNailAssets) {
-        this.loadedNailAssets = await this.nailModelLoader.loadAllFingers();
+        const initialTexId = this.$store.state.nail?.selectedTextureId || undefined;
+        this.loadedNailAssets = await this.nailModelLoader.loadAllFingers(initialTexId);
 
         // モーフターゲット名の抽出
+        let morphNames: string[] = [];
         for (const asset of this.loadedNailAssets.values()) {
           if (asset.morphTargetNames.length > 0) {
-            this.$store.commit('nail/setAvailableMorphNames', asset.morphTargetNames);
+            morphNames = asset.morphTargetNames;
             break;
           }
         }
+        this.$store.commit('nail/setAvailableMorphNames', morphNames);
       }
 
       // ボーンへアタッチ
@@ -325,7 +328,8 @@ export default class ThreeCanvas extends Vue {
       this.nailAttacher.attachAll(
         vrm,
         this.loadedNailAssets,
-        this.$store.state.nail.configs
+        this.$store.state.nail.configs,
+        this.nailModelLoader.getPreset()
       );
       console.log('[DEBUG] attachNails finished. isAttached:', this.nailAttacher.isAttached());
 
@@ -338,6 +342,19 @@ export default class ThreeCanvas extends Vue {
     } finally {
       this.$store.commit('nail/setLoading', false);
     }
+  }
+
+  /**
+   * テクスチャを切り替える
+   */
+  public async changeTexture(textureId: string): Promise<void> {
+    if (!this.loadedNailAssets) return;
+    const preset = this.nailModelLoader.getPreset();
+    const texOpt = preset.textures.find((t) => t.id === textureId);
+    if (!texOpt) return;
+
+    await this.nailModelLoader.applyTextureToAll(this.loadedNailAssets, texOpt);
+    this.$store.commit('nail/setSelectedTextureId', textureId);
   }
 
   /**

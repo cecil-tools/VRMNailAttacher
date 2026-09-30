@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { FingerId, FINGER_DEFINITIONS, ALL_FINGER_IDS } from './types';
+import {
+  FingerId,
+  FINGER_DEFINITIONS,
+  ALL_FINGER_IDS,
+  NailPreset,
+  DEFAULT_NAIL_PRESET,
+  NailTextureOption
+} from './types';
 
 export interface LoadedNailAsset {
   fingerId: FingerId;
@@ -12,12 +19,26 @@ export interface LoadedNailAsset {
 
 export class NailModelLoader {
   private loader: GLTFLoader;
+  private textureLoader: THREE.TextureLoader;
   private cache: Map<string, THREE.Group> = new Map();
-  private basePath: string;
+  private textureCache: Map<string, THREE.Texture> = new Map();
+  private preset: NailPreset;
 
-  constructor(basePath: string = (process.env.BASE_URL || '/') + 'models/nail/MDollnail/glb/') {
+  constructor(preset: NailPreset = DEFAULT_NAIL_PRESET) {
     this.loader = new GLTFLoader();
-    this.basePath = basePath;
+    this.textureLoader = new THREE.TextureLoader();
+    this.preset = preset;
+  }
+
+  public getPreset(): NailPreset {
+    return this.preset;
+  }
+
+  public setPreset(preset: NailPreset): void {
+    if (this.preset.id !== preset.id) {
+      this.preset = preset;
+      this.clearCache();
+    }
   }
 
   /**
@@ -25,7 +46,10 @@ export class NailModelLoader {
    */
   public async loadNailForFinger(fingerId: FingerId): Promise<LoadedNailAsset> {
     const def = FINGER_DEFINITIONS[fingerId];
-    const url = this.basePath + def.modelFileName;
+    // preset.fileMap からモデルファイル名を取得（フォールバックとして def.modelFileName）
+    const fileName = this.preset.fileMap[def.type] || def.modelFileName;
+    const baseUrl = process.env.BASE_URL || '/';
+    const url = baseUrl + this.preset.basePath + fileName;
 
     let baseScene = this.cache.get(url);
     if (!baseScene) {
@@ -72,9 +96,57 @@ export class NailModelLoader {
   }
 
   /**
-   * 全 10 指のネイルモデルを一括で並列ロード
+   * テクスチャファイルを非同期ロード（キャッシュ付き）
    */
-  public async loadAllFingers(): Promise<Map<FingerId, LoadedNailAsset>> {
+  public async loadTexture(relativeFileName: string): Promise<THREE.Texture> {
+    const baseUrl = process.env.BASE_URL || '/';
+    const url = baseUrl + this.preset.basePath + relativeFileName;
+
+    let texture = this.textureCache.get(url);
+    if (!texture) {
+      texture = await this.textureLoader.loadAsync(url);
+      texture.flipY = false;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      this.textureCache.set(url, texture);
+    }
+    return texture;
+  }
+
+  /**
+   * 単一のアセットにテクスチャを適用
+   */
+  public applyTextureToAsset(asset: LoadedNailAsset, texture: THREE.Texture): void {
+    if (!asset.mesh) return;
+    const materials = Array.isArray(asset.mesh.material)
+      ? asset.mesh.material
+      : [asset.mesh.material];
+
+    for (const mat of materials) {
+      if ('map' in mat) {
+        (mat as THREE.MeshStandardMaterial).map = texture;
+        mat.needsUpdate = true;
+      }
+    }
+  }
+
+  /**
+   * 全アセットに指定のテクスチャを適用
+   */
+  public async applyTextureToAll(
+    assets: Map<FingerId, LoadedNailAsset>,
+    textureOption: NailTextureOption
+  ): Promise<void> {
+    const texture = await this.loadTexture(textureOption.fileName);
+    for (const asset of assets.values()) {
+      this.applyTextureToAsset(asset, texture);
+    }
+  }
+
+  /**
+   * 全 10 指のネイルモデルを一括で並列ロード
+   * プリセットにデフォルトテクスチャが指定されていれば自動適用
+   */
+  public async loadAllFingers(initialTextureId?: string): Promise<Map<FingerId, LoadedNailAsset>> {
     const map = new Map<FingerId, LoadedNailAsset>();
     const promises = ALL_FINGER_IDS.map(async (fingerId) => {
       const asset = await this.loadNailForFinger(fingerId);
@@ -82,10 +154,22 @@ export class NailModelLoader {
     });
 
     await Promise.all(promises);
+
+    // デフォルトテクスチャの適用
+    const targetTextureId = initialTextureId || this.preset.defaultTextureId;
+    if (targetTextureId && this.preset.textures.length > 0) {
+      const texOpt = this.preset.textures.find((t) => t.id === targetTextureId);
+      if (texOpt) {
+        await this.applyTextureToAll(map, texOpt);
+      }
+    }
+
     return map;
   }
 
   public clearCache(): void {
     this.cache.clear();
+    this.textureCache.clear();
   }
 }
+

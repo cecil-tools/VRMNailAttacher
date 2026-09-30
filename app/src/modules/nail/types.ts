@@ -61,6 +61,84 @@ export const ALL_FINGER_IDS: FingerId[] = [
   'rightLittle'
 ];
 
+export interface NailTextureOption {
+  id: string;
+  label: string;
+  fileName: string;
+}
+
+export interface NailPreset {
+  id: string;
+  name: string;
+  basePath: string;
+  fileMap: Record<FingerType, string>;
+  alignment: {
+    rotationEuler: [number, number, number]; // [x, y, z] ラジアン
+    originOffsetRatioZ?: Record<FingerType, number>; // 爪の根元を (0,0,0) に合わせるためのオフセット (m)
+    forwardOffsetRatio: { thumb: number; other: number };
+    heightOffset: { thumb: number; other: number };
+  };
+  textures: NailTextureOption[];
+  defaultTextureId?: string;
+  supportedMorphs: string[];
+}
+
+export const RYUKI_PRESET: NailPreset = {
+  id: 'ryuki',
+  name: 'Ryuki',
+  basePath: 'models/nail/Ryuki/',
+  fileMap: {
+    thumb: 'glb/Thumb.glb',
+    index: 'glb/Index.glb',
+    middle: 'glb/Middle.glb',
+    ring: 'glb/Ring.glb',
+    little: 'glb/Little.glb'
+  },
+  alignment: {
+    // -X(先端) -> +Z(指先), -Z(上面) -> +Y(背側), +Y(幅) -> +X(幅)
+    rotationEuler: [Math.PI / 2, 0, -Math.PI / 2],
+    originOffsetRatioZ: {
+      thumb: 0.0095,
+      index: 0.0088,
+      middle: 0.0088,
+      ring: 0.0086,
+      little: 0.0075
+    },
+    forwardOffsetRatio: { thumb: 0.38, other: 0.52 },
+    heightOffset: { thumb: 0.0020, other: 0.0010 }
+  },
+  textures: [
+    { id: 'cheek', label: 'チーク (Cheek)', fileName: 'textures/Texture_Cheek.png' },
+    { id: 'french', label: 'フレンチ (French)', fileName: 'textures/Texture_French.png' },
+    { id: 'baby_boomers', label: 'ベイビーブーマー (Baby Boomers)', fileName: 'textures/Texture_BabyBoomers.png' },
+    { id: 'base', label: 'ベース (Base)', fileName: 'textures/Texture_Base.png' }
+  ],
+  defaultTextureId: 'cheek',
+  supportedMorphs: []
+};
+
+export const MDOLLNAIL_PRESET: NailPreset = {
+  id: 'mdollnail',
+  name: 'MDollnail',
+  basePath: 'models/nail/MDollnail/',
+  fileMap: {
+    thumb: 'glb/MD_nail_natural_HandL.Thumb.glb',
+    index: 'glb/MD_nail_natural_HandL.Index.glb',
+    middle: 'glb/MD_nail_natural_HandL.Middle.glb',
+    ring: 'glb/MD_nail_natural_HandL.Ring.glb',
+    little: 'glb/MD_nail_natural_HandL.Little.glb'
+  },
+  alignment: {
+    rotationEuler: [-Math.PI / 2, 0, Math.PI],
+    forwardOffsetRatio: { thumb: 0.38, other: 0.52 },
+    heightOffset: { thumb: 0.0020, other: 0.0010 }
+  },
+  textures: [],
+  supportedMorphs: ['flat', 'curl', 'curl_front', 'curl_back']
+};
+
+export const DEFAULT_NAIL_PRESET = RYUKI_PRESET;
+
 export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
   leftThumb: {
     id: 'leftThumb',
@@ -69,7 +147,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'thumb',
     vrmBoneName: 'leftThumbDistal',
     fallbackBoneNames: ['leftThumbIntermediate', 'leftThumbProximal'],
-    modelFileName: 'MD_nail_natural_HandL.Thumb.glb'
+    modelFileName: 'Thumb.glb'
   },
   leftIndex: {
     id: 'leftIndex',
@@ -78,7 +156,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'index',
     vrmBoneName: 'leftIndexDistal',
     fallbackBoneNames: ['leftIndexIntermediate'],
-    modelFileName: 'MD_nail_natural_HandL.Index.glb'
+    modelFileName: 'Index.glb'
   },
   leftMiddle: {
     id: 'leftMiddle',
@@ -87,7 +165,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'middle',
     vrmBoneName: 'leftMiddleDistal',
     fallbackBoneNames: ['leftMiddleIntermediate'],
-    modelFileName: 'MD_nail_natural_HandL.Middle.glb'
+    modelFileName: 'Middle.glb'
   },
   leftRing: {
     id: 'leftRing',
@@ -96,7 +174,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'ring',
     vrmBoneName: 'leftRingDistal',
     fallbackBoneNames: ['leftRingIntermediate'],
-    modelFileName: 'MD_nail_natural_HandL.Ring.glb'
+    modelFileName: 'Ring.glb'
   },
   leftLittle: {
     id: 'leftLittle',
@@ -105,7 +183,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'little',
     vrmBoneName: 'leftLittleDistal',
     fallbackBoneNames: ['leftLittleIntermediate'],
-    modelFileName: 'MD_nail_natural_HandL.Little.glb'
+    modelFileName: 'Little.glb'
   },
   rightThumb: {
     id: 'rightThumb',
@@ -114,7 +192,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'thumb',
     vrmBoneName: 'rightThumbDistal',
     fallbackBoneNames: ['rightThumbIntermediate', 'rightThumbProximal'],
-    modelFileName: 'MD_nail_natural_HandR.Thumb.glb'
+    modelFileName: 'Thumb.glb'
   },
   rightIndex: {
     id: 'rightIndex',
@@ -123,7 +201,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'index',
     vrmBoneName: 'rightIndexDistal',
     fallbackBoneNames: ['rightIndexIntermediate'],
-    modelFileName: 'MD_nail_natural_HandR.Index.glb'
+    modelFileName: 'Index.glb'
   },
   rightMiddle: {
     id: 'rightMiddle',
@@ -132,7 +210,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'middle',
     vrmBoneName: 'rightMiddleDistal',
     fallbackBoneNames: ['rightMiddleIntermediate'],
-    modelFileName: 'MD_nail_natural_HandR.Middle.glb'
+    modelFileName: 'Middle.glb'
   },
   rightRing: {
     id: 'rightRing',
@@ -141,7 +219,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'ring',
     vrmBoneName: 'rightRingDistal',
     fallbackBoneNames: ['rightRingIntermediate'],
-    modelFileName: 'MD_nail_natural_HandR.Ring.glb'
+    modelFileName: 'Ring.glb'
   },
   rightLittle: {
     id: 'rightLittle',
@@ -150,7 +228,7 @@ export const FINGER_DEFINITIONS: Record<FingerId, FingerDefinition> = {
     type: 'little',
     vrmBoneName: 'rightLittleDistal',
     fallbackBoneNames: ['rightLittleIntermediate'],
-    modelFileName: 'MD_nail_natural_HandR.Little.glb'
+    modelFileName: 'Little.glb'
   }
 };
 

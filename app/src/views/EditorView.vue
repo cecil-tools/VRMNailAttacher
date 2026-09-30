@@ -100,6 +100,7 @@
             @apply-all-transform="onApplyAllTransform"
             @global-scale-change="onGlobalScaleChange"
             @reset-global-scale="onResetGlobalScale"
+            @texture-change="onTextureChange"
             @morph-change="onMorphChange"
             @morph-reset="onMorphReset"
           />
@@ -252,6 +253,12 @@ export default class EditorView extends Vue {
   private onResetGlobalScale() {
     if (this.threeCanvas) {
       this.threeCanvas.updateAllNailTransforms();
+    }
+  }
+
+  private onTextureChange(textureId: string) {
+    if (this.threeCanvas) {
+      this.threeCanvas.changeTexture(textureId);
     }
   }
 

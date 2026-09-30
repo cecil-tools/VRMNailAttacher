@@ -40,6 +40,11 @@
         @focus-finger="onFocusFinger"
       />
 
+      <!-- Texture Controls -->
+      <TextureControl
+        @texture-change="onTextureChange"
+      />
+
       <!-- Transform Controls -->
       <TransformControl
         @transform-change="onTransformChange"
@@ -74,6 +79,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import GlobalScaleControl from './GlobalScaleControl.vue';
 import FingerSelector from './FingerSelector.vue';
+import TextureControl from './TextureControl.vue';
 import TransformControl from './TransformControl.vue';
 import MorphControl from './MorphControl.vue';
 import { FingerId, NailTransform } from '@/modules/nail/types';
@@ -82,6 +88,7 @@ import { FingerId, NailTransform } from '@/modules/nail/types';
   components: {
     GlobalScaleControl,
     FingerSelector,
+    TextureControl,
     TransformControl,
     MorphControl
   }
@@ -122,6 +129,10 @@ export default class NailControlPanel extends Vue {
 
   private onFocusFinger(fingerId: FingerId) {
     this.$emit('focus-finger', fingerId);
+  }
+
+  private onTextureChange(textureId: string) {
+    this.$emit('texture-change', textureId);
   }
 
   private onTransformChange(payload: { fingerId: FingerId; key: keyof NailTransform; value: number }) {

@@ -5,7 +5,9 @@ import {
   FINGER_DEFINITIONS,
   ALL_FINGER_IDS,
   NailTransform,
-  FingerNailConfig
+  FingerNailConfig,
+  NailPreset,
+  DEFAULT_NAIL_PRESET
 } from './types';
 import { LoadedNailAsset } from './NailModelLoader';
 import { BoneDetector } from './BoneDetector';
@@ -21,6 +23,7 @@ export interface AttachedFingerNail {
 export class NailAttacher {
   private attachedMap: Map<FingerId, AttachedFingerNail> = new Map();
   private currentVRM: VRM | null = null;
+  private currentPreset: NailPreset = DEFAULT_NAIL_PRESET;
 
   /**
    * VRM モデルに対して全ネイルをアタッチする
@@ -28,13 +31,16 @@ export class NailAttacher {
   public attachAll(
     vrm: VRM,
     nailAssets: Map<FingerId, LoadedNailAsset>,
-    configs: Record<FingerId, FingerNailConfig>
+    configs: Record<FingerId, FingerNailConfig>,
+    preset: NailPreset = DEFAULT_NAIL_PRESET
   ): void {
     // 既存のネイルをクリーンアップ
     this.detachAll();
     this.currentVRM = vrm;
+    this.currentPreset = preset;
 
     const boneInfos = BoneDetector.detectAllFingers(vrm);
+    const alignment = preset.alignment;
 
     for (const fingerId of ALL_FINGER_IDS) {
       const asset = nailAssets.get(fingerId);
@@ -47,7 +53,8 @@ export class NailAttacher {
       }
 
       const boneNode = boneInfo.boneNode;
-      const isThumb = FINGER_DEFINITIONS[fingerId].type === 'thumb';
+      const fingerDef = FINGER_DEFINITIONS[fingerId];
+      const isThumb = fingerDef.type === 'thumb';
 
       // 1. Anchor のワールド姿勢（基底ベクトル）を算出
       // +Z: 指先方向 (Forward), +Y: 背側法線 (Up), +X: 横幅 (Side)
@@ -62,10 +69,11 @@ export class NailAttacher {
       const targetWorldQuat = new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
 
       // 先端位置 (ボーン起点 + 前方オフセット + 背側高さオフセット)
-      // ネイルの根元(Y=0)が甘皮付近に配置され、先端(12mm / 親指10.8mm)が指先へ伸びるように調整
-      // 自然なハンド用ネイルモデルに合わせて指表面にフィットする高さ（指: 1.0mm, 親指: 2.0mm）
-      const forwardOffset = boneInfo.length * (isThumb ? 0.38 : 0.52);
-      const heightOffset = isThumb ? 0.0020 : 0.0010;
+      const fwdRatio = isThumb ? alignment.forwardOffsetRatio.thumb : alignment.forwardOffsetRatio.other;
+      const hOffset = isThumb ? alignment.heightOffset.thumb : alignment.heightOffset.other;
+
+      const forwardOffset = boneInfo.length * fwdRatio;
+      const heightOffset = hOffset;
       const targetWorldPos = boneInfo.worldPosition.clone()
         .addScaledVector(fwd, forwardOffset)
         .addScaledVector(up, heightOffset);
@@ -89,10 +97,21 @@ export class NailAttacher {
       offsetNode.name = `nail_offset_${fingerId}`;
 
       // 4. ネイルモデルの配置
-      // MDollnail モデル（+Y: 根元→先端, +Z: 背側法線, +X: 幅）を
-      // Anchor（+Z: 先端方向, +Y: 背側法線, +X: 幅方向）に正しくアライメント
+      // プリセットに応じた初期回転を適用
       const modelRoot = asset.root;
-      modelRoot.rotation.set(-Math.PI / 2, 0, Math.PI);
+      modelRoot.rotation.set(
+        alignment.rotationEuler[0],
+        alignment.rotationEuler[1],
+        alignment.rotationEuler[2]
+      );
+
+      // 根元位置を Anchor 原点に合わせるためのオフセット補正
+      if (alignment.originOffsetRatioZ && alignment.originOffsetRatioZ[fingerDef.type]) {
+        const offsetZ = alignment.originOffsetRatioZ[fingerDef.type];
+        modelRoot.position.set(0, 0, offsetZ);
+      } else {
+        modelRoot.position.set(0, 0, 0);
+      }
 
       offsetNode.add(modelRoot);
       anchorNode.add(offsetNode);

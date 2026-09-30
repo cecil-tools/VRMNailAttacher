@@ -25,6 +25,7 @@ export interface NailState {
   globalScale: GlobalScale;
   configs: Record<FingerId, FingerNailConfig>;
   availableMorphNames: string[];
+  selectedTextureId: string | null;
 }
 
 function getOppositeFinger(fingerId: FingerId): FingerId {
@@ -65,7 +66,8 @@ export const nailModule: Module<NailState, RootState> = {
       scaleThickness: 1.0
     },
     configs: createInitialConfigs(),
-    availableMorphNames: ['flat', 'curl', 'curl_front', 'curl_back']
+    availableMorphNames: [],
+    selectedTextureId: 'cheek'
   },
   getters: {
     activeConfig: (state) => (fingerId: FingerId): FingerNailConfig => {
@@ -93,6 +95,9 @@ export const nailModule: Module<NailState, RootState> = {
     },
     setAvailableMorphNames(state, names: string[]) {
       state.availableMorphNames = names;
+    },
+    setSelectedTextureId(state, textureId: string | null) {
+      state.selectedTextureId = textureId;
     },
     updateFingerTransform(
       state,
