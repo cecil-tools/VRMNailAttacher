@@ -27,6 +27,12 @@ export class NailModelLoader {
   private textureCache: Map<string, THREE.Texture> = new Map();
   private preset: NailPreset;
 
+  // 全ネイルメッシュで共有する単一のマテリアルインスタンス
+  private sharedMaterial: THREE.Material | null = null;
+  private currentMaterialType: NailMaterialType = 'mtoon';
+  private currentMToonParams?: NailMToonParams;
+  private currentTexture: THREE.Texture | null = null;
+
   constructor(preset: NailPreset = DEFAULT_NAIL_PRESET) {
     this.loader = new GLTFLoader();
     this.textureLoader = new THREE.TextureLoader();
@@ -42,6 +48,10 @@ export class NailModelLoader {
       this.preset = preset;
       this.clearCache();
     }
+  }
+
+  public getSharedMaterial(): THREE.Material | null {
+    return this.sharedMaterial;
   }
 
   /**
@@ -77,11 +87,19 @@ export class NailModelLoader {
             morphTargetNames.push(...Object.keys(mesh.morphTargetDictionary));
           }
         }
-        // MToonMaterial で初期化（既存テクスチャがあれば引き継ぐ）
-        const initialTexture = (mesh.material && 'map' in (mesh.material as any))
-          ? (mesh.material as any).map
-          : null;
-        mesh.material = NailMaterialManager.createMToonMaterial(initialTexture);
+        // ネイル全体で1つのマテリアルを共有
+        if (!this.sharedMaterial) {
+          const initialTexture = (mesh.material && 'map' in (mesh.material as any))
+            ? (mesh.material as any).map
+            : null;
+          this.currentTexture = initialTexture;
+          this.sharedMaterial = NailMaterialManager.createMaterial(
+            this.currentMaterialType,
+            this.currentTexture,
+            this.currentMToonParams
+          );
+        }
+        mesh.material = this.sharedMaterial;
         // 影の設定
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -138,16 +156,15 @@ export class NailModelLoader {
   }
 
   /**
-   * 単一のアセットにテクスチャを適用
+   * 単一のアセットにテクスチャを適用（共有マテリアルを更新）
    */
   public applyTextureToAsset(asset: LoadedNailAsset, texture: THREE.Texture): void {
-    if (!asset.mesh) return;
-    const materials = Array.isArray(asset.mesh.material)
-      ? asset.mesh.material
-      : [asset.mesh.material];
-
-    for (const mat of materials) {
-      NailMaterialManager.updateMaterialTexture(mat, texture);
+    this.currentTexture = texture;
+    if (this.sharedMaterial) {
+      NailMaterialManager.updateMaterialTexture(this.sharedMaterial, texture);
+    }
+    if (asset.mesh && this.sharedMaterial && asset.mesh.material !== this.sharedMaterial) {
+      asset.mesh.material = this.sharedMaterial;
     }
   }
 
@@ -167,19 +184,14 @@ export class NailModelLoader {
   }
 
   /**
-   * 指定した指のアセット群にテクスチャを適用
+   * 指定した指のアセット群にテクスチャを適用（全ネイル共有マテリアルを更新）
    */
   public applyTextureToFingers(
     assets: Map<FingerId, LoadedNailAsset>,
-    fingerIds: FingerId[],
+    _fingerIds: FingerId[],
     texture: THREE.Texture
   ): void {
-    for (const id of fingerIds) {
-      const asset = assets.get(id);
-      if (asset) {
-        this.applyTextureToAsset(asset, texture);
-      }
-    }
+    this.applyLoadedTextureToAll(assets, texture);
   }
 
   /**
@@ -190,14 +202,20 @@ export class NailModelLoader {
   }
 
   /**
-   * 全アセットにロード済みテクスチャを適用
+   * 全アセットにロード済みテクスチャを適用（共有マテリアルのテクスチャを一括更新）
    */
   public applyLoadedTextureToAll(
     assets: Map<FingerId, LoadedNailAsset>,
     texture: THREE.Texture
   ): void {
+    this.currentTexture = texture;
+    if (this.sharedMaterial) {
+      NailMaterialManager.updateMaterialTexture(this.sharedMaterial, texture);
+    }
     for (const asset of assets.values()) {
-      this.applyTextureToAsset(asset, texture);
+      if (asset.mesh && this.sharedMaterial && asset.mesh.material !== this.sharedMaterial) {
+        asset.mesh.material = this.sharedMaterial;
+      }
     }
   }
 
@@ -240,19 +258,28 @@ export class NailModelLoader {
   public clearCache(): void {
     this.cache.clear();
     this.textureCache.clear();
+    this.sharedMaterial = null;
+    this.currentTexture = null;
   }
 
   /**
-   * 全アセットのマテリアル種別（mtoon / standard）を一括切り替え
+   * 全アセットのマテリアル種別（mtoon / standard）を一括切り替え（共有マテリアルを再生成）
    */
   public setMaterialType(
     assets: Map<FingerId, LoadedNailAsset>,
     type: NailMaterialType,
     params?: NailMToonParams
   ): void {
+    this.currentMaterialType = type;
+    if (params) this.currentMToonParams = params;
+    this.sharedMaterial = NailMaterialManager.createMaterial(
+      type,
+      this.currentTexture,
+      params || this.currentMToonParams
+    );
     for (const asset of assets.values()) {
       if (asset.mesh) {
-        NailMaterialManager.switchMeshMaterial(asset.mesh, type, params);
+        asset.mesh.material = this.sharedMaterial;
       }
     }
   }

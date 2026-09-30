@@ -165,7 +165,122 @@ export class VRMExporter {
       return textureIndex;
     }
 
-    // 5. 各指のネイルをシリアライズしてボーンの子ノードに登録
+    // 5. ネイル共有マテリアル & テクスチャの解決（全ネイルで1つのマテリアル「NailMaterial」に統合）
+    let nailMaterialIndex = 0;
+    const hasAttachedNails = Array.from(attachedNails.values()).some((a) => !!a.nailAsset.mesh);
+
+    if (hasAttachedNails) {
+      let sharedTexture: THREE.Texture | null = null;
+      for (const fingerId of ALL_FINGER_IDS) {
+        const attached = attachedNails.get(fingerId);
+        if (!attached || !attached.nailAsset.mesh) continue;
+        const m = attached.nailAsset.mesh;
+        const meshMat = Array.isArray(m.material) ? m.material[0] : m.material;
+        if (meshMat && 'map' in meshMat && (meshMat as any).map) {
+          sharedTexture = (meshMat as any).map as THREE.Texture;
+          break;
+        }
+      }
+
+      let sharedTextureIndex: number | undefined;
+      if (sharedTexture) {
+        sharedTextureIndex = await getOrCreateTexture(sharedTexture);
+      }
+
+      const matName = 'NailMaterial';
+      const matEntry: any = {
+        name: matName,
+        pbrMetallicRoughness: sharedTextureIndex !== undefined
+          ? {
+              baseColorTexture: { index: sharedTextureIndex },
+              metallicFactor: 0.0,
+              roughnessFactor: 0.2
+            }
+          : {
+              baseColorFactor: [1.0, 1.0, 1.0, 1.0],
+              metallicFactor: 0.0,
+              roughnessFactor: 0.2
+            },
+        doubleSided: true
+      };
+
+      if (useMToon && isVRM1) {
+        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
+        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
+        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
+
+        const mtoonExt: any = {
+          specVersion: '1.0',
+          shadeColorFactor: shadeFactor,
+          shadingShiftFactor: mtoonParams.shadingShiftFactor ?? 0.0,
+          shadingToonyFactor: mtoonParams.shadingToonyFactor ?? 0.9,
+          giEqualizationFactor: mtoonParams.giEqualizationFactor ?? 0.9,
+          parametricRimColorFactor: rimFactor,
+          parametricRimFresnelPowerFactor: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
+          parametricRimLiftFactor: mtoonParams.parametricRimLiftFactor ?? 0.0,
+          outlineWidthMode: mtoonParams.outlineWidthMode || 'none'
+        };
+        if (sharedTextureIndex !== undefined) {
+          mtoonExt.shadeMultiplyTexture = { index: sharedTextureIndex };
+        }
+        matEntry.extensions = {
+          VRMC_materials_mtoon: mtoonExt
+        };
+      }
+
+      nailMaterialIndex = gltf.materials.length;
+      gltf.materials.push(matEntry);
+
+      // VRM 0.x の MToon 定義を materialProperties 配列に追加（gltf.materials と 1-to-1 連動）
+      if (useMToon && isVRM0 && gltf.extensions?.VRM?.materialProperties) {
+        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
+        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
+        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
+
+        const mtoonProp: any = {
+          name: matName,
+          shader: 'VRM/MToon',
+          renderQueue: 2000,
+          floatProperties: {
+            _BlendMode: 0,
+            _SrcBlend: 1,
+            _DstBlend: 0,
+            _ZWrite: 1,
+            _Cutoff: 0.5,
+            _ShadeShift: mtoonParams.shadingShiftFactor ?? 0.0,
+            _ShadeToony: mtoonParams.shadingToonyFactor ?? 0.9,
+            _ReceiveShadowRate: 1.0,
+            _ShadingGradeRate: 1.0,
+            _LightColorAttenuation: 0.0,
+            _IndirectLightIntensity: 0.1,
+            _RimLightingMix: 1.0,
+            _RimFresnelPower: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
+            _RimLift: mtoonParams.parametricRimLiftFactor ?? 0.0,
+            _OutlineWidthMode: 0,
+            _OutlineWidth: 0.0
+          },
+          vectorProperties: {
+            _Color: [1.0, 1.0, 1.0, 1.0],
+            _ShadeColor: [shadeFactor[0], shadeFactor[1], shadeFactor[2], 1.0],
+            _RimColor: [rimFactor[0], rimFactor[1], rimFactor[2], 1.0],
+            _OutlineColor: [0.0, 0.0, 0.0, 1.0]
+          },
+          textureProperties: sharedTextureIndex !== undefined ? {
+            _MainTex: sharedTextureIndex,
+            _ShadeTexture: sharedTextureIndex
+          } : {},
+          keywordMap: {
+            _MTOON_OUTLINE_NONE: true
+          },
+          tagMap: {
+            RenderType: 'Opaque'
+          }
+        };
+        gltf.extensions.VRM.materialProperties.push(mtoonProp);
+      }
+    }
+
+    // 5.1 各指のネイルをシリアライズしてボーンの子ノードに登録
     for (const fingerId of ALL_FINGER_IDS) {
       const attached = attachedNails.get(fingerId);
       if (!attached) continue;
@@ -301,109 +416,7 @@ export class VRMExporter {
         type: 'SCALAR'
       });
 
-      // 5.3 マテリアル & テクスチャの解決
-      let materialIndex = 0;
-      const meshMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-      let textureIndex: number | undefined;
-
-      if (meshMat && 'map' in meshMat && (meshMat as any).map) {
-        const tex = (meshMat as any).map as THREE.Texture;
-        textureIndex = await getOrCreateTexture(tex);
-      }
-
-      const matName = `NailMaterial_${fingerId}`;
-      const matEntry: any = {
-        name: matName,
-        pbrMetallicRoughness: textureIndex !== undefined
-          ? {
-              baseColorTexture: { index: textureIndex },
-              metallicFactor: 0.0,
-              roughnessFactor: 0.2
-            }
-          : {
-              baseColorFactor: [1.0, 1.0, 1.0, 1.0],
-              metallicFactor: 0.0,
-              roughnessFactor: 0.2
-            },
-        doubleSided: true
-      };
-
-      if (useMToon && isVRM1) {
-        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
-        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
-        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
-
-        const mtoonExt: any = {
-          specVersion: '1.0',
-          shadeColorFactor: shadeFactor,
-          shadingShiftFactor: mtoonParams.shadingShiftFactor ?? 0.0,
-          shadingToonyFactor: mtoonParams.shadingToonyFactor ?? 0.9,
-          giEqualizationFactor: mtoonParams.giEqualizationFactor ?? 0.9,
-          parametricRimColorFactor: rimFactor,
-          parametricRimFresnelPowerFactor: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
-          parametricRimLiftFactor: mtoonParams.parametricRimLiftFactor ?? 0.0,
-          outlineWidthMode: mtoonParams.outlineWidthMode || 'none'
-        };
-        if (textureIndex !== undefined) {
-          mtoonExt.shadeMultiplyTexture = { index: textureIndex };
-        }
-        matEntry.extensions = {
-          VRMC_materials_mtoon: mtoonExt
-        };
-      }
-
-      materialIndex = gltf.materials.length;
-      gltf.materials.push(matEntry);
-
-      // VRM 0.x の MToon 定義を materialProperties 配列に追加（gltf.materials と 1-to-1 連動）
-      if (useMToon && isVRM0 && gltf.extensions?.VRM?.materialProperties) {
-        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
-        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
-        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
-
-        const mtoonProp: any = {
-          name: matName,
-          shader: 'VRM/MToon',
-          renderQueue: 2000,
-          floatProperties: {
-            _BlendMode: 0,
-            _SrcBlend: 1,
-            _DstBlend: 0,
-            _ZWrite: 1,
-            _Cutoff: 0.5,
-            _ShadeShift: mtoonParams.shadingShiftFactor ?? 0.0,
-            _ShadeToony: mtoonParams.shadingToonyFactor ?? 0.9,
-            _ReceiveShadowRate: 1.0,
-            _ShadingGradeRate: 1.0,
-            _LightColorAttenuation: 0.0,
-            _IndirectLightIntensity: 0.1,
-            _RimLightingMix: 1.0,
-            _RimFresnelPower: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
-            _RimLift: mtoonParams.parametricRimLiftFactor ?? 0.0,
-            _OutlineWidthMode: 0,
-            _OutlineWidth: 0.0
-          },
-          vectorProperties: {
-            _Color: [1.0, 1.0, 1.0, 1.0],
-            _ShadeColor: [shadeFactor[0], shadeFactor[1], shadeFactor[2], 1.0],
-            _RimColor: [rimFactor[0], rimFactor[1], rimFactor[2], 1.0],
-            _OutlineColor: [0.0, 0.0, 0.0, 1.0]
-          },
-          textureProperties: textureIndex !== undefined ? {
-            _MainTex: textureIndex,
-            _ShadeTexture: textureIndex
-          } : {},
-          keywordMap: {
-            _MTOON_OUTLINE_NONE: true
-          },
-          tagMap: {
-            RenderType: 'Opaque'
-          }
-        };
-        gltf.extensions.VRM.materialProperties.push(mtoonProp);
-      }
-
-      // 5.4 メッシュの追加
+      // 6.3 メッシュの追加（全ネイル共通の nailMaterialIndex を参照）
       const meshIndex = gltf.meshes.length;
       const attributes: Record<string, number> = {
         POSITION: posAccIndex
@@ -417,7 +430,7 @@ export class VRMExporter {
           {
             attributes,
             indices: indexAccIndex,
-            material: materialIndex
+            material: nailMaterialIndex
           }
         ]
       });
