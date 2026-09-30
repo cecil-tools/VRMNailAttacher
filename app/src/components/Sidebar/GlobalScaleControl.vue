@@ -148,11 +148,11 @@ export default class GlobalScaleControl extends Vue {
 }
 
 .control-group {
-  background: $bg-secondary;
-  border: 1px solid rgba(255, 101, 132, 0.25);
-  border-radius: $radius-md;
+  background: #ffffff;
+  border: 1px solid rgba(255, 117, 151, 0.25);
+  border-radius: $radius-lg;
   padding: $space-sm $space-md;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(230, 140, 165, 0.08);
 
   &__header {
     display: flex;
@@ -163,7 +163,7 @@ export default class GlobalScaleControl extends Vue {
 
   &__title {
     font-size: $font-size-xs;
-    font-weight: 600;
+    font-weight: 700;
     color: $accent-pink;
   }
 }
@@ -179,18 +179,18 @@ export default class GlobalScaleControl extends Vue {
 }
 
 .btn-reset-mini {
-  padding: 2px 8px;
+  padding: 3px 10px;
   font-size: 10px;
   font-weight: 600;
   background: $bg-tertiary;
   border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
+  border-radius: $radius-full;
   color: $text-secondary;
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover {
-    background: $bg-elevated;
+    background: #ffffff;
     border-color: $accent-pink;
     color: $accent-pink;
   }
@@ -212,7 +212,7 @@ export default class GlobalScaleControl extends Vue {
   font-size: 11px;
   color: $text-secondary;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .slider-wrapper {
@@ -221,21 +221,13 @@ export default class GlobalScaleControl extends Vue {
   align-items: center;
 }
 
-input[type='range'] {
-  width: 100%;
-  height: 5px;
-  border-radius: $radius-full;
-  background: $bg-elevated;
-  accent-color: $accent-pink;
-  cursor: pointer;
-}
-
 .slider-val {
   width: 44px;
   text-align: right;
   font-size: 11px;
   font-family: monospace;
   color: $text-primary;
+  font-weight: 600;
 
   &.highlight {
     color: $accent-pink;
@@ -253,29 +245,30 @@ input[type='range'] {
 }
 
 .btn-step {
-  padding: 2px 6px;
+  padding: 2px 7px;
   font-size: 10px;
   font-family: monospace;
   background: $bg-tertiary;
   border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  color: $text-muted;
+  border-radius: $radius-full;
+  color: $text-secondary;
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover {
-    background: $bg-elevated;
-    border-color: $border-medium;
-    color: $text-primary;
+    background: #ffffff;
+    border-color: $accent-pink;
+    color: $accent-pink;
   }
 
   &--default {
-    color: $accent-blue;
-    border-color: rgba(56, 189, 248, 0.3);
+    color: $accent-pink;
+    border-color: rgba(255, 117, 151, 0.4);
+    font-weight: 600;
 
     &:hover {
-      background: rgba(56, 189, 248, 0.15);
-      color: $accent-blue;
+      background: rgba(255, 117, 151, 0.12);
+      color: $accent-pink;
     }
   }
 }
@@ -290,15 +283,16 @@ input[type='range'] {
   background: transparent;
   border: none;
   font-size: 10px;
+  font-weight: 600;
   color: $text-muted;
   cursor: pointer;
-  padding: 3px 8px;
-  border-radius: $radius-sm;
+  padding: 3px 10px;
+  border-radius: $radius-full;
   transition: all $transition-fast;
 
   &:hover {
     color: $accent-pink;
-    background: rgba(255, 101, 132, 0.08);
+    background: rgba(255, 117, 151, 0.08);
   }
 }
 

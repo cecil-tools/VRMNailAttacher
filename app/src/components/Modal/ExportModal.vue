@@ -209,8 +209,8 @@ export default class ExportModal extends Vue {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(74, 56, 61, 0.35);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,12 +219,12 @@ export default class ExportModal extends Vue {
 }
 
 .modal-card {
-  background: $bg-elevated;
+  background: #ffffff;
   border: 1px solid $border-medium;
   border-radius: $radius-lg;
   width: 100%;
   max-width: 520px;
-  box-shadow: $shadow-lg;
+  box-shadow: 0 16px 40px rgba(230, 140, 165, 0.25);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -236,7 +236,7 @@ export default class ExportModal extends Vue {
     align-items: center;
     padding: $space-md $space-lg;
     border-bottom: 1px solid $border-subtle;
-    background: $bg-secondary;
+    background: $bg-tertiary;
   }
 
   &__header-title {
@@ -271,8 +271,8 @@ export default class ExportModal extends Vue {
     transition: all $transition-fast;
 
     &:hover:not(:disabled) {
-      background: $bg-tertiary;
-      color: $text-primary;
+      background: rgba(255, 117, 151, 0.12);
+      color: $accent-pink;
     }
 
     &:disabled {
@@ -295,7 +295,7 @@ export default class ExportModal extends Vue {
     gap: $space-sm;
     padding: $space-md $space-lg;
     border-top: 1px solid $border-subtle;
-    background: $bg-secondary;
+    background: $bg-tertiary;
   }
 }
 
@@ -316,7 +316,7 @@ export default class ExportModal extends Vue {
   gap: 8px;
   background: $bg-tertiary;
   padding: 10px 12px;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border-subtle;
 
   &__item {
@@ -330,12 +330,12 @@ export default class ExportModal extends Vue {
     font-size: 10px;
     color: $text-muted;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   &__value {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: $text-primary;
     white-space: nowrap;
     overflow: hidden;
@@ -348,11 +348,11 @@ export default class ExportModal extends Vue {
 }
 
 .text-success {
-  color: #4cd964 !important;
+  color: #10b981 !important;
 }
 
 .text-warning {
-  color: #ff9500 !important;
+  color: #f59e0b !important;
 }
 
 .form-group {
@@ -380,7 +380,7 @@ export default class ExportModal extends Vue {
 .form-input {
   background: $bg-tertiary;
   border: 1px solid $border-medium;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   color: $text-primary;
   padding: 8px 12px;
   font-size: 12px;
@@ -388,8 +388,9 @@ export default class ExportModal extends Vue {
 
   &:focus {
     outline: none;
+    background: #ffffff;
     border-color: $accent-pink;
-    box-shadow: 0 0 0 2px rgba(255, 101, 132, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 117, 151, 0.2);
   }
 
   &:disabled {
@@ -402,9 +403,9 @@ export default class ExportModal extends Vue {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(255, 101, 132, 0.08);
-  border: 1px solid rgba(255, 101, 132, 0.25);
-  border-radius: $radius-sm;
+  background: rgba(255, 117, 151, 0.08);
+  border: 1px solid rgba(255, 117, 151, 0.25);
+  border-radius: $radius-md;
 
   &__icon {
     font-size: 18px;
@@ -432,26 +433,26 @@ export default class ExportModal extends Vue {
 
 .alert-box {
   padding: 8px 12px;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-size: 11px;
   line-height: 1.5;
 
   &--warning {
-    background: rgba(255, 149, 0, 0.12);
-    border: 1px solid rgba(255, 149, 0, 0.35);
-    color: #ffb340;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #b45309;
   }
 
   &--error {
-    background: rgba(255, 69, 58, 0.12);
-    border: 1px solid rgba(255, 69, 58, 0.35);
-    color: #ff6b6b;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    color: #be123c;
   }
 }
 
 .btn {
-  padding: 8px 16px;
-  border-radius: $radius-sm;
+  padding: 8px 18px;
+  border-radius: $radius-full;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -463,21 +464,28 @@ export default class ExportModal extends Vue {
   transition: all $transition-fast;
 
   &--secondary {
-    background: $bg-tertiary;
+    background: #ffffff;
     color: $text-primary;
     border: 1px solid $border-medium;
+    box-shadow: $shadow-sm;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.08);
+      background: $bg-tertiary;
+      border-color: $accent-pink;
+      color: $accent-pink;
+      transform: translateY(-1px);
     }
   }
 
   &--primary {
-    background: $accent-pink;
+    background: $accent-gradient;
     color: #fff;
+    box-shadow: 0 4px 14px rgba(255, 117, 151, 0.35);
 
     &:hover:not(:disabled) {
-      filter: brightness(1.1);
+      background: $accent-gradient-hover;
+      box-shadow: 0 6px 18px rgba(255, 117, 151, 0.45);
+      transform: translateY(-1px);
     }
   }
 

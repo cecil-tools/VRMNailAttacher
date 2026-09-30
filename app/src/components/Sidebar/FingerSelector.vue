@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import { FingerId, HandSide, FINGER_DEFINITIONS } from '@/modules/nail/types';
 
 interface FingerItem {
@@ -100,6 +100,15 @@ export default class FingerSelector extends Vue {
     }
   }
 
+  @Watch('$store.state.nail.selectedFinger')
+  private onSelectedFingerChange(newVal: string) {
+    if (newVal.startsWith('right')) {
+      this.activeHand = 'right';
+    } else if (newVal.startsWith('left')) {
+      this.activeHand = 'left';
+    }
+  }
+
   private selectHand(hand: HandSide) {
     this.activeHand = hand;
     // 手を切り替えたら同等の指を選択（例: 左手人差指 -> 右手人差指）
@@ -138,9 +147,9 @@ function capitalize(s: string): string {
 .hand-tabs {
   display: flex;
   gap: 4px;
-  background: $bg-secondary;
-  padding: 3px;
-  border-radius: $radius-md;
+  background: $bg-tertiary;
+  padding: 4px;
+  border-radius: $radius-full;
   border: 1px solid $border-subtle;
 }
 
@@ -149,7 +158,7 @@ function capitalize(s: string): string {
   padding: 6px 12px;
   background: transparent;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: $radius-full;
   color: $text-secondary;
   font-size: $font-size-xs;
   font-weight: 600;
@@ -157,13 +166,14 @@ function capitalize(s: string): string {
   transition: all $transition-fast;
 
   &:hover {
-    color: $text-primary;
+    color: $accent-pink;
   }
 
   &--active {
-    background: $bg-tertiary;
+    background: #ffffff;
     color: $accent-pink;
-    box-shadow: $shadow-sm;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(230, 140, 165, 0.18);
   }
 }
 
@@ -179,7 +189,7 @@ function capitalize(s: string): string {
   align-items: center;
   gap: 4px;
   padding: 8px 4px;
-  background: $bg-secondary;
+  background: $bg-tertiary;
   border: 1px solid $border-subtle;
   border-radius: $radius-md;
   color: $text-secondary;
@@ -187,21 +197,29 @@ function capitalize(s: string): string {
   transition: all $transition-fast;
 
   &:hover {
-    background: $bg-elevated;
+    background: #ffffff;
     border-color: $border-medium;
     color: $text-primary;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
   }
 
   &--active {
-    background: rgba(255, 101, 132, 0.15);
+    background: #ffffff;
     border-color: $accent-pink;
     color: $accent-pink;
-    font-weight: 600;
-    box-shadow: $glow-pink;
+    font-weight: 700;
+    box-shadow: 0 3px 12px rgba(255, 117, 151, 0.28);
+    transform: translateY(-1px);
   }
 
   &__icon {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    transition: transform $transition-fast;
+  }
+
+  &:hover &__icon {
+    transform: scale(1.1);
   }
 
   &__name {
@@ -233,22 +251,26 @@ function capitalize(s: string): string {
 
   &__label {
     user-select: none;
+    font-weight: 500;
   }
 }
 
 .btn-focus-tip {
-  padding: 4px 8px;
+  padding: 5px 12px;
   font-size: 11px;
-  background: $bg-secondary;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  color: $accent-blue;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid $border-medium;
+  border-radius: $radius-full;
+  color: $accent-pink;
   cursor: pointer;
   transition: all $transition-fast;
+  box-shadow: $shadow-sm;
 
   &:hover {
-    background: $bg-elevated;
-    border-color: $accent-blue;
+    background: $bg-tertiary;
+    border-color: $accent-pink;
+    transform: translateY(-1px);
   }
 }
 </style>

@@ -4,7 +4,10 @@
     <header class="editor-header">
       <div class="editor-header__brand">
         <span class="editor-header__logo">💅</span>
-        <h1 class="editor-header__title">VRMNailAttacher</h1>
+        <div class="editor-header__title-group">
+          <h1 class="editor-header__title">VRMNailAttacher</h1>
+          <span class="editor-header__subtitle">Nail Art Atelier</span>
+        </div>
         <span class="editor-header__tag">Alpha</span>
       </div>
       <div class="editor-header__actions">
@@ -420,8 +423,23 @@ export default class EditorView extends Vue {
   }
 
   private onSelectFinger(fingerId: FingerId) {
-    // 選択された指先へ自動でカメラを寄せる
     if (this.threeCanvas) {
+      const currentFocus = this.threeCanvas.getCurrentFocus();
+      if (currentFocus === 'leftHand') {
+        if (fingerId.startsWith('left')) {
+          return; // 左手表示中は全指が見えているため全体ビューを維持
+        } else {
+          this.threeCanvas.focusHand('right');
+          return;
+        }
+      } else if (currentFocus === 'rightHand') {
+        if (fingerId.startsWith('right')) {
+          return; // 右手表示中は全指が見えているため全体ビューを維持
+        } else {
+          this.threeCanvas.focusHand('left');
+          return;
+        }
+      }
       this.threeCanvas.focusFinger(fingerId);
     }
   }
@@ -561,13 +579,14 @@ export default class EditorView extends Vue {
 
 /* Header */
 .editor-header {
-  height: 56px;
-  background-color: $bg-secondary;
+  height: 58px;
+  background-color: #ffffff;
   border-bottom: 1px solid $border-subtle;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 $space-lg;
+  box-shadow: 0 2px 12px rgba(230, 140, 165, 0.08);
   z-index: 10;
 
   &__brand {
@@ -577,25 +596,46 @@ export default class EditorView extends Vue {
   }
 
   &__logo {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 117, 151, 0.25));
+    transition: transform $transition-fast;
+
+    &:hover {
+      transform: rotate(15deg) scale(1.1);
+    }
+  }
+
+  &__title-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   &__title {
-    font-size: $font-size-lg;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
     background: $accent-gradient;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 9px;
+    font-weight: 700;
+    color: $text-muted;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   &__tag {
-    font-size: $font-size-xs;
-    padding: 2px 8px;
-    background: rgba(255, 101, 132, 0.15);
+    font-size: 11px;
+    padding: 2px 9px;
+    background: rgba(255, 117, 151, 0.12);
     color: $accent-pink;
     border-radius: $radius-full;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   &__actions {
@@ -617,14 +657,14 @@ export default class EditorView extends Vue {
   flex: 1;
   height: 100%;
   position: relative;
-  background-color: #131418;
+  background-color: #faf0f4;
 }
 
 /* Sidebar */
 .editor-sidebar {
   width: 360px;
   height: 100%;
-  background-color: $bg-secondary;
+  background-color: $bg-primary;
   border-left: 1px solid $border-subtle;
   overflow-y: auto;
   padding: $space-md;
@@ -633,10 +673,11 @@ export default class EditorView extends Vue {
   gap: $space-md;
 
   &__section {
-    background-color: $bg-tertiary;
+    background-color: #ffffff;
     border: 1px solid $border-subtle;
     border-radius: $radius-lg;
     padding: $space-md;
+    box-shadow: 0 4px 16px rgba(230, 140, 165, 0.08);
   }
 
   &__hint {
@@ -720,24 +761,27 @@ export default class EditorView extends Vue {
   align-items: center;
   gap: $space-sm;
   padding: 8px 12px;
-  background: $bg-secondary;
+  background: $bg-tertiary;
   border: 1px solid $border-subtle;
   border-radius: $radius-md;
   text-align: left;
   transition: all $transition-fast;
 
   &:hover {
-    background: $bg-elevated;
+    background: #ffffff;
     border-color: $border-medium;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
   }
 
   &--active {
-    background: rgba(255, 101, 132, 0.15);
+    background: #ffffff;
     border-color: $accent-pink;
+    box-shadow: 0 2px 10px rgba(255, 117, 151, 0.2);
 
     .preset-card__name {
       color: $accent-pink;
-      font-weight: 600;
+      font-weight: 700;
     }
   }
 
@@ -755,14 +799,16 @@ export default class EditorView extends Vue {
   &__name {
     font-size: $font-size-xs;
     color: $text-primary;
+    font-weight: 600;
   }
 
   &__ver {
     font-size: 10px;
     padding: 1px 6px;
-    background: $bg-tertiary;
-    border-radius: $radius-sm;
-    color: $text-muted;
+    background: $bg-elevated;
+    border-radius: $radius-full;
+    color: $text-secondary;
+    font-weight: 600;
   }
 }
 
@@ -813,8 +859,8 @@ export default class EditorView extends Vue {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
+  background: rgba(74, 56, 61, 0.35);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -824,13 +870,13 @@ export default class EditorView extends Vue {
 }
 
 .modal-card {
-  background: $bg-secondary;
+  background: #ffffff;
   border: 1px solid $border-medium;
   border-radius: $radius-lg;
   padding: $space-lg;
   max-width: 640px;
   width: 100%;
-  box-shadow: $shadow-lg;
+  box-shadow: 0 16px 40px rgba(230, 140, 165, 0.25);
   box-sizing: border-box;
 
   &--help {
@@ -914,35 +960,36 @@ export default class EditorView extends Vue {
   display: flex;
   background: $bg-tertiary;
   padding: 4px;
-  border-radius: $radius-sm;
+  border-radius: $radius-full;
   gap: 4px;
   margin-bottom: $space-md;
   flex-shrink: 0;
+  border: 1px solid $border-subtle;
 }
 
 .help-tab {
   flex: 1;
-  padding: 6px 10px;
+  padding: 6px 12px;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: $radius-full;
   font-size: 11px;
-  color: $text-muted;
+  color: $text-secondary;
   cursor: pointer;
   transition: all $transition-fast;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   white-space: nowrap;
 
   &:hover {
-    color: $text-primary;
+    color: $accent-pink;
   }
 
   &--active {
-    background: $bg-elevated;
+    background: #ffffff;
     color: $accent-pink;
-    font-weight: 600;
-    box-shadow: $shadow-sm;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(230, 140, 165, 0.18);
   }
 }
 
@@ -975,7 +1022,7 @@ export default class EditorView extends Vue {
   padding: 10px 12px;
   background: $bg-tertiary;
   border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
 
   &__num {
     width: 22px;
@@ -989,6 +1036,7 @@ export default class EditorView extends Vue {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(255, 117, 151, 0.35);
   }
 
   &__body {
@@ -1014,7 +1062,7 @@ export default class EditorView extends Vue {
   padding: 10px 12px;
   background: $bg-tertiary;
   border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
 
   &__title {
     font-size: 12px;

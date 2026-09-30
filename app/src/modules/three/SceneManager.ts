@@ -20,8 +20,8 @@ export class SceneManager {
   private updateCallbacks: Array<(delta: number) => void> = [];
 
   public currentVRM: VRM | null = null;
-  public currentFocus: FocusTarget = 'hands';
-  public currentAngle: ViewAngle = 'normal';
+  public currentFocus: FocusTarget = 'leftHand';
+  public currentAngle: ViewAngle = 'top';
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -29,7 +29,7 @@ export class SceneManager {
 
     // 1. Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x131418);
+    this.scene.background = new THREE.Color(0xfaf0f4);
 
     // 2. Camera
     const aspect = container.clientWidth / (container.clientHeight || 1);
@@ -60,7 +60,7 @@ export class SceneManager {
     this.setupLights();
 
     // 6. Grid Helper
-    this.gridHelper = new THREE.GridHelper(10, 20, 0xff6584, 0x2d313f);
+    this.gridHelper = new THREE.GridHelper(10, 20, 0xff7597, 0xf0d5de);
     this.gridHelper.position.y = 0;
     this.scene.add(this.gridHelper);
 
@@ -121,7 +121,7 @@ export class SceneManager {
   /**
    * ボーンのワールド位置を取得（VRMがある場合は動的取得、ない場合はデフォルト値）
    */
-  private getBoneWorldPosition(boneName: 'leftHand' | 'rightHand' | 'head' | 'hips'): THREE.Vector3 {
+  public getBoneWorldPosition(boneName: 'leftHand' | 'rightHand' | 'head' | 'hips'): THREE.Vector3 {
     const pos = new THREE.Vector3();
     if (this.currentVRM && this.currentVRM.humanoid) {
       const rawNode = this.currentVRM.humanoid.getRawBoneNode(boneName);
@@ -157,25 +157,29 @@ export class SceneManager {
     switch (this.currentFocus) {
       case 'leftHand': {
         const handPos = this.getBoneWorldPosition('leftHand');
-        this.controls.target.copy(handPos);
+        // 手首（leftHandボーン）から手の中心・指先側（+X方向）へオフセット
+        const targetPos = new THREE.Vector3(handPos.x + 0.08, handPos.y, handPos.z);
+        this.controls.target.copy(targetPos);
         if (isTop) {
-          // 左手の真上
-          this.camera.position.set(handPos.x, handPos.y + 0.38, handPos.z + 0.001);
+          // 左手の真上（すべての指が収まる距離）
+          this.camera.position.set(targetPos.x, targetPos.y + 0.42, targetPos.z + 0.001);
         } else {
           // 左手の斜め正面アップ
-          this.camera.position.set(handPos.x, handPos.y + 0.06, handPos.z + 0.32);
+          this.camera.position.set(targetPos.x, targetPos.y + 0.10, targetPos.z + 0.42);
         }
         break;
       }
       case 'rightHand': {
         const handPos = this.getBoneWorldPosition('rightHand');
-        this.controls.target.copy(handPos);
+        // 手首（rightHandボーン）から手の中心・指先側（-X方向）へオフセット
+        const targetPos = new THREE.Vector3(handPos.x - 0.08, handPos.y, handPos.z);
+        this.controls.target.copy(targetPos);
         if (isTop) {
-          // 右手の真上
-          this.camera.position.set(handPos.x, handPos.y + 0.38, handPos.z + 0.001);
+          // 右手の真上（すべての指が収まる距離）
+          this.camera.position.set(targetPos.x, targetPos.y + 0.42, targetPos.z + 0.001);
         } else {
           // 右手の斜め正面アップ
-          this.camera.position.set(handPos.x, handPos.y + 0.06, handPos.z + 0.32);
+          this.camera.position.set(targetPos.x, targetPos.y + 0.10, targetPos.z + 0.42);
         }
         break;
       }
@@ -219,7 +223,7 @@ export class SceneManager {
       }
       case 'fingertip': {
         const targetPos = this.controls.target;
-        const distance = 0.13;
+        const distance = 0.24;
         if (isTop) {
           this.camera.position.set(targetPos.x, targetPos.y + distance, targetPos.z + 0.001);
         } else {
@@ -250,7 +254,7 @@ export class SceneManager {
   /**
    * 指定したワールド座標（指先など）へカメラターゲットと位置をズームフォーカス
    */
-  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.13): void {
+  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.24): void {
     this.currentFocus = 'fingertip';
     this.controls.target.copy(targetPosition);
     const isTop = this.currentAngle === 'top';

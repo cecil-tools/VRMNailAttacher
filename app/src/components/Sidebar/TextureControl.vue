@@ -370,10 +370,11 @@ export default class TextureControl extends Vue {
 .control-group {
   width: 100%;
   box-sizing: border-box;
-  background: $bg-secondary;
+  background: #ffffff;
   border: 1px solid $border-subtle;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   padding: $space-sm $space-md;
+  box-shadow: 0 2px 10px rgba(230, 140, 165, 0.06);
 
   &__header {
     display: flex;
@@ -384,7 +385,7 @@ export default class TextureControl extends Vue {
 
   &__title {
     font-size: $font-size-xs;
-    font-weight: 600;
+    font-weight: 700;
     color: $text-secondary;
   }
 }
@@ -395,9 +396,9 @@ export default class TextureControl extends Vue {
   align-items: center;
   gap: $space-xs;
   padding: 6px $space-sm;
-  background: rgba($accent-pink, 0.08);
-  border: 1px solid rgba($accent-pink, 0.2);
-  border-radius: $radius-sm;
+  background: rgba(255, 117, 151, 0.08);
+  border: 1px solid rgba(255, 117, 151, 0.2);
+  border-radius: $radius-full;
   margin-bottom: $space-sm;
 
   &__icon {
@@ -406,7 +407,7 @@ export default class TextureControl extends Vue {
 
   &__text {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     color: $accent-pink;
   }
 }
@@ -419,7 +420,7 @@ export default class TextureControl extends Vue {
 
 .section-sub-title {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: $text-muted;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -445,7 +446,7 @@ export default class TextureControl extends Vue {
   padding: 6px 8px;
   background: $bg-tertiary;
   border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   color: $text-secondary;
   cursor: pointer;
   transition: all $transition-fast;
@@ -453,31 +454,35 @@ export default class TextureControl extends Vue {
   overflow: hidden;
 
   &:hover {
-    background: $bg-elevated;
+    background: #ffffff;
     border-color: $border-medium;
     color: $text-primary;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
   }
 
   &--active {
-    background: rgba(255, 101, 132, 0.15);
+    background: #ffffff;
     border-color: $accent-pink;
     color: $accent-pink;
-    font-weight: 600;
-    box-shadow: $glow-pink;
+    font-weight: 700;
+    box-shadow: 0 3px 12px rgba(255, 117, 151, 0.25);
+    transform: translateY(-1px);
 
     .texture-card__sub {
-      color: rgba(255, 101, 132, 0.8);
+      color: rgba(255, 117, 151, 0.85);
     }
   }
 
   &__thumb {
     width: 28px;
     height: 28px;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     overflow: hidden;
     flex-shrink: 0;
-    background: #000;
+    background: #ffffff;
     border: 1px solid $border-subtle;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 
     img {
       width: 100%;
@@ -498,6 +503,7 @@ export default class TextureControl extends Vue {
 
   &__name {
     font-size: 11px;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -535,7 +541,7 @@ export default class TextureControl extends Vue {
     transition: all $transition-fast;
 
     &:hover {
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(244, 63, 94, 0.15);
       color: $color-error;
     }
   }
@@ -546,15 +552,15 @@ export default class TextureControl extends Vue {
   margin-top: 4px;
   padding: 10px 12px;
   background: $bg-tertiary;
-  border: 1px dashed $border-medium;
-  border-radius: $radius-sm;
+  border: 1.5px dashed $border-medium;
+  border-radius: $radius-md;
   cursor: pointer;
   transition: all $transition-fast;
   text-align: center;
 
   &:hover, &--dragover {
     border-color: $accent-pink;
-    background: rgba(255, 101, 132, 0.08);
+    background: rgba(255, 117, 151, 0.08);
   }
 
   &__content {

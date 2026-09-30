@@ -106,10 +106,11 @@ export default class MorphControl extends Vue {
 }
 
 .control-group {
-  background: $bg-secondary;
+  background: #ffffff;
   border: 1px solid $border-subtle;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   padding: $space-sm $space-md;
+  box-shadow: 0 2px 10px rgba(230, 140, 165, 0.06);
 
   &__header {
     display: flex;
@@ -120,7 +121,7 @@ export default class MorphControl extends Vue {
 
   &__title {
     font-size: $font-size-xs;
-    font-weight: 600;
+    font-weight: 700;
     color: $text-secondary;
   }
 }
@@ -129,6 +130,7 @@ export default class MorphControl extends Vue {
   background: transparent;
   border: none;
   font-size: 11px;
+  font-weight: 600;
   color: $accent-pink;
   cursor: pointer;
   padding: 0;
@@ -155,19 +157,15 @@ export default class MorphControl extends Vue {
 .slider-label {
   width: 105px;
   font-size: 11px;
-  color: $text-muted;
+  color: $text-secondary;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
 }
 
 input[type='range'] {
   flex: 1;
-  height: 4px;
-  border-radius: $radius-full;
-  background: $bg-elevated;
-  accent-color: $accent-pink;
-  cursor: pointer;
 }
 
 .slider-val {
@@ -176,5 +174,6 @@ input[type='range'] {
   font-size: 11px;
   font-family: monospace;
   color: $text-primary;
+  font-weight: 600;
 }
 </style>
