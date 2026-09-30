@@ -101,6 +101,7 @@
             @global-scale-change="onGlobalScaleChange"
             @reset-global-scale="onResetGlobalScale"
             @texture-change="onTextureChange"
+            @material-type-change="onMaterialTypeChange"
             @morph-change="onMorphChange"
             @morph-reset="onMorphReset"
           />
@@ -324,6 +325,7 @@
       :default-authors="currentMeta ? currentMeta.authors : ''"
       :vrm-version="currentMeta ? currentMeta.vrmFormatVersion : '0.x'"
       :attached-count="attachedNailCount"
+      :material-type="currentMaterialType"
       :is-exporting="isExporting"
       :error-message="exportErrorMessage"
       @close="closeExportModal"
@@ -339,7 +341,7 @@ import NailControlPanel from '@/components/Sidebar/NailControlPanel.vue';
 import ExportModal, { ExportFormPayload } from '@/components/Modal/ExportModal.vue';
 import { PresetModel } from '@/store';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
-import { FingerId, NailTransform } from '@/modules/nail/types';
+import { FingerId, NailTransform, NailMaterialType } from '@/modules/nail/types';
 
 @Component({
   components: {
@@ -466,6 +468,12 @@ export default class EditorView extends Vue {
     }
   }
 
+  private onMaterialTypeChange(type: NailMaterialType) {
+    if (this.threeCanvas) {
+      this.threeCanvas.setNailMaterialType(type);
+    }
+  }
+
   private onMorphChange(payload: { fingerId: FingerId; name: string; value: number }) {
     if (this.threeCanvas) {
       this.threeCanvas.updateNailMorph(payload);
@@ -485,6 +493,10 @@ export default class EditorView extends Vue {
 
   get attachedNailCount(): number {
     return this.threeCanvas ? this.threeCanvas.getAttachedNailCount() : 0;
+  }
+
+  get currentMaterialType(): NailMaterialType {
+    return this.$store.state.nail?.materialType || 'mtoon';
   }
 
   private openExportModal(): void {
@@ -507,6 +519,7 @@ export default class EditorView extends Vue {
       const blob = await this.threeCanvas.exportVRM({
         avatarTitle: payload.avatarTitle,
         avatarAuthors: payload.avatarAuthors,
+        materialType: (payload.materialType as NailMaterialType) || 'mtoon',
       });
 
       // ブラウザダウンロード

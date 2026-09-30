@@ -312,3 +312,28 @@ export function getOppositeFinger(fingerId: FingerId): FingerId {
   };
   return map[fingerId];
 }
+
+export type NailMaterialType = 'mtoon' | 'standard';
+
+export interface NailMToonParams {
+  shadeColorFactor?: [number, number, number];
+  shadingShiftFactor?: number;
+  shadingToonyFactor?: number;
+  giEqualizationFactor?: number;
+  parametricRimColorFactor?: [number, number, number];
+  parametricRimFresnelPowerFactor?: number;
+  parametricRimLiftFactor?: number;
+  outlineWidthMode?: 'none' | 'worldCoordinates' | 'screenCoordinates';
+}
+
+export const DEFAULT_MTOON_PARAMS: NailMToonParams = {
+  shadeColorFactor: [0.85, 0.85, 0.85],
+  shadingShiftFactor: 0.0,
+  shadingToonyFactor: 0.9,
+  giEqualizationFactor: 0.9,
+  parametricRimColorFactor: [0.2, 0.2, 0.2],
+  parametricRimFresnelPowerFactor: 5.0,
+  parametricRimLiftFactor: 0.0,
+  outlineWidthMode: 'none',
+};
+

@@ -38,6 +38,12 @@
               💅 {{ attachedCount }} / 10 本
             </span>
           </div>
+          <div class="export-summary__item">
+            <span class="export-summary__label">質感シェーダー</span>
+            <span class="export-summary__value badge-format">
+              {{ materialType === 'mtoon' ? '🎨 MToon' : '✨ Standard' }}
+            </span>
+          </div>
         </div>
 
         <div v-if="attachedCount === 0" class="alert-box alert-box--warning">
@@ -88,9 +94,9 @@
         <div class="info-note">
           <span class="info-note__icon">🛡️</span>
           <div class="info-note__text">
-            <strong>完全非破壊バイナリパッチ方式</strong>
+            <strong>完全非破壊バイナリパッチ + MToon シェーダー拡張</strong>
             <p>
-              元 VRM の MToon シェーダー、揺れもの物理（SpringBone）、表情モーフ、ボーン階層を 100% 保持したまま、各指先ボーンへネイルのメッシュ・テクスチャを追記して出力します。
+              元 VRM の MToon 設定、揺れもの物理（SpringBone）、表情モーフ、ボーン階層を 100% 保持したまま、各指先ボーンへ MToon（セル調）対応のネイルメッシュ・テクスチャを追記して出力します。
             </p>
           </div>
         </div>
@@ -130,6 +136,7 @@ export interface ExportFormPayload {
   fileName: string;
   avatarTitle: string;
   avatarAuthors: string;
+  materialType?: string;
 }
 
 @Component
@@ -140,6 +147,7 @@ export default class ExportModal extends Vue {
   @Prop({ type: String, default: '' }) readonly defaultAuthors!: string;
   @Prop({ type: String, default: '0.x' }) readonly vrmVersion!: string;
   @Prop({ type: Number, default: 0 }) readonly attachedCount!: number;
+  @Prop({ type: String, default: 'mtoon' }) readonly materialType!: string;
   @Prop({ type: Boolean, default: false }) readonly isExporting!: boolean;
   @Prop({ type: String, default: '' }) readonly errorMessage!: string;
 
@@ -186,6 +194,7 @@ export default class ExportModal extends Vue {
       fileName: finalFileName,
       avatarTitle: this.avatarTitle.trim(),
       avatarAuthors: this.avatarAuthors.trim(),
+      materialType: this.materialType,
     };
 
     this.$emit('export', payload);
@@ -303,7 +312,7 @@ export default class ExportModal extends Vue {
 
 .export-summary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   background: $bg-tertiary;
   padding: 10px 12px;

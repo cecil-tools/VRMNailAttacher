@@ -156,7 +156,9 @@ import {
   getOppositeFinger,
   NailTransform,
   TextureApplyScope,
-  CustomTextureItem
+  CustomTextureItem,
+  NailMaterialType,
+  NailMToonParams
 } from '@/modules/nail/types';
 import { VRMExporter, VRMExportOptions } from '@/modules/vrm/VRMExporter';
 
@@ -445,6 +447,15 @@ export default class ThreeCanvas extends Vue {
   }
 
   /**
+   * ネイルのマテリアル種別（mtoon / standard）を切り替え
+   */
+  public setNailMaterialType(type: NailMaterialType, params?: NailMToonParams): void {
+    if (this.loadedNailAssets) {
+      this.nailModelLoader.setMaterialType(this.loadedNailAssets, type, params);
+    }
+  }
+
+  /**
    * 指定指のトランスフォーム変更を 3D メッシュへ反映
    */
   public updateNailTransform(payload: { fingerId: FingerId; key?: keyof NailTransform; value?: number }): void {
@@ -651,6 +662,8 @@ export default class ThreeCanvas extends Vue {
         avatarTitle: options?.avatarTitle || meta?.title,
         avatarAuthors: options?.avatarAuthors || meta?.authors,
         avatarVersion: options?.avatarVersion || meta?.version,
+        materialType: options?.materialType || this.$store.state.nail?.materialType || 'mtoon',
+        mtoonParams: options?.mtoonParams,
       };
 
       const exportedBlob = await VRMExporter.exportVRM(

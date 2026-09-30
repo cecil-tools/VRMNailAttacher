@@ -43,6 +43,7 @@
       <!-- Texture Controls -->
       <TextureControl
         @texture-change="onTextureChange"
+        @material-type-change="onMaterialTypeChange"
       />
 
       <!-- Transform Controls -->
@@ -82,7 +83,7 @@ import FingerSelector from './FingerSelector.vue';
 import TextureControl from './TextureControl.vue';
 import TransformControl from './TransformControl.vue';
 import MorphControl from './MorphControl.vue';
-import { FingerId, NailTransform } from '@/modules/nail/types';
+import { FingerId, NailTransform, NailMaterialType } from '@/modules/nail/types';
 
 @Component({
   components: {
@@ -133,6 +134,10 @@ export default class NailControlPanel extends Vue {
 
   private onTextureChange(textureId: string) {
     this.$emit('texture-change', textureId);
+  }
+
+  private onMaterialTypeChange(type: NailMaterialType) {
+    this.$emit('material-type-change', type);
   }
 
   private onTransformChange(payload: { fingerId: FingerId; key: keyof NailTransform; value: number }) {

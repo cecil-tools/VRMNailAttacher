@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import { VRM } from '@pixiv/three-vrm';
-import { FingerId, FINGER_DEFINITIONS, ALL_FINGER_IDS } from '../nail/types';
+import {
+  FingerId,
+  FINGER_DEFINITIONS,
+  ALL_FINGER_IDS,
+  NailMaterialType,
+  NailMToonParams,
+  DEFAULT_MTOON_PARAMS
+} from '../nail/types';
 import { AttachedFingerNail } from '../nail/NailAttacher';
 
 export interface VRMExportOptions {
@@ -8,6 +15,8 @@ export interface VRMExportOptions {
   avatarTitle?: string;
   avatarVersion?: string;
   avatarAuthors?: string;
+  materialType?: NailMaterialType;
+  mtoonParams?: NailMToonParams;
 }
 
 interface ImageExportCache {
@@ -101,6 +110,24 @@ export class VRMExporter {
     if (!gltf.materials) gltf.materials = [];
     if (!gltf.meshes) gltf.meshes = [];
     if (!gltf.nodes) gltf.nodes = [];
+
+    // MToon 拡張の対応判定
+    const isVRM1 = !!gltf.extensions?.VRMC_vrm;
+    const isVRM0 = !!gltf.extensions?.VRM;
+    const useMToon = (options.materialType ?? 'mtoon') === 'mtoon';
+
+    if (useMToon && isVRM1) {
+      if (!gltf.extensionsUsed) gltf.extensionsUsed = [];
+      if (!gltf.extensionsUsed.includes('VRMC_materials_mtoon')) {
+        gltf.extensionsUsed.push('VRMC_materials_mtoon');
+      }
+    }
+    if (useMToon && isVRM0) {
+      if (!gltf.extensions.VRM) gltf.extensions.VRM = {};
+      if (!gltf.extensions.VRM.materialProperties) {
+        gltf.extensions.VRM.materialProperties = [];
+      }
+    }
 
     // 4. テクスチャ画像の抽出・キャッシュ
     const textureCache = new Map<string, ImageExportCache>();
@@ -277,31 +304,103 @@ export class VRMExporter {
       // 5.3 マテリアル & テクスチャの解決
       let materialIndex = 0;
       const meshMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+      let textureIndex: number | undefined;
+
       if (meshMat && 'map' in meshMat && (meshMat as any).map) {
         const tex = (meshMat as any).map as THREE.Texture;
-        const textureIndex = await getOrCreateTexture(tex);
+        textureIndex = await getOrCreateTexture(tex);
+      }
 
-        materialIndex = gltf.materials.length;
-        gltf.materials.push({
-          name: `NailMaterial_${fingerId}`,
-          pbrMetallicRoughness: {
-            baseColorTexture: { index: textureIndex },
-            metallicFactor: 0.0,
-            roughnessFactor: 0.2
+      const matName = `NailMaterial_${fingerId}`;
+      const matEntry: any = {
+        name: matName,
+        pbrMetallicRoughness: textureIndex !== undefined
+          ? {
+              baseColorTexture: { index: textureIndex },
+              metallicFactor: 0.0,
+              roughnessFactor: 0.2
+            }
+          : {
+              baseColorFactor: [1.0, 1.0, 1.0, 1.0],
+              metallicFactor: 0.0,
+              roughnessFactor: 0.2
+            },
+        doubleSided: true
+      };
+
+      if (useMToon && isVRM1) {
+        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
+        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
+        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
+
+        const mtoonExt: any = {
+          specVersion: '1.0',
+          shadeColorFactor: shadeFactor,
+          shadingShiftFactor: mtoonParams.shadingShiftFactor ?? 0.0,
+          shadingToonyFactor: mtoonParams.shadingToonyFactor ?? 0.9,
+          giEqualizationFactor: mtoonParams.giEqualizationFactor ?? 0.9,
+          parametricRimColorFactor: rimFactor,
+          parametricRimFresnelPowerFactor: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
+          parametricRimLiftFactor: mtoonParams.parametricRimLiftFactor ?? 0.0,
+          outlineWidthMode: mtoonParams.outlineWidthMode || 'none'
+        };
+        if (textureIndex !== undefined) {
+          mtoonExt.shadeMultiplyTexture = { index: textureIndex };
+        }
+        matEntry.extensions = {
+          VRMC_materials_mtoon: mtoonExt
+        };
+      }
+
+      materialIndex = gltf.materials.length;
+      gltf.materials.push(matEntry);
+
+      // VRM 0.x の MToon 定義を materialProperties 配列に追加（gltf.materials と 1-to-1 連動）
+      if (useMToon && isVRM0 && gltf.extensions?.VRM?.materialProperties) {
+        const mtoonParams = options.mtoonParams || DEFAULT_MTOON_PARAMS;
+        const shadeFactor = mtoonParams.shadeColorFactor || [0.85, 0.85, 0.85];
+        const rimFactor = mtoonParams.parametricRimColorFactor || [0.2, 0.2, 0.2];
+
+        const mtoonProp: any = {
+          name: matName,
+          shader: 'VRM/MToon',
+          renderQueue: 2000,
+          floatProperties: {
+            _BlendMode: 0,
+            _SrcBlend: 1,
+            _DstBlend: 0,
+            _ZWrite: 1,
+            _Cutoff: 0.5,
+            _ShadeShift: mtoonParams.shadingShiftFactor ?? 0.0,
+            _ShadeToony: mtoonParams.shadingToonyFactor ?? 0.9,
+            _ReceiveShadowRate: 1.0,
+            _ShadingGradeRate: 1.0,
+            _LightColorAttenuation: 0.0,
+            _IndirectLightIntensity: 0.1,
+            _RimLightingMix: 1.0,
+            _RimFresnelPower: mtoonParams.parametricRimFresnelPowerFactor ?? 5.0,
+            _RimLift: mtoonParams.parametricRimLiftFactor ?? 0.0,
+            _OutlineWidthMode: 0,
+            _OutlineWidth: 0.0
           },
-          doubleSided: true
-        });
-      } else {
-        materialIndex = gltf.materials.length;
-        gltf.materials.push({
-          name: `NailMaterial_${fingerId}`,
-          pbrMetallicRoughness: {
-            baseColorFactor: [1.0, 1.0, 1.0, 1.0],
-            metallicFactor: 0.0,
-            roughnessFactor: 0.2
+          vectorProperties: {
+            _Color: [1.0, 1.0, 1.0, 1.0],
+            _ShadeColor: [shadeFactor[0], shadeFactor[1], shadeFactor[2], 1.0],
+            _RimColor: [rimFactor[0], rimFactor[1], rimFactor[2], 1.0],
+            _OutlineColor: [0.0, 0.0, 0.0, 1.0]
           },
-          doubleSided: true
-        });
+          textureProperties: textureIndex !== undefined ? {
+            _MainTex: textureIndex,
+            _ShadeTexture: textureIndex
+          } : {},
+          keywordMap: {
+            _MTOON_OUTLINE_NONE: true
+          },
+          tagMap: {
+            RenderType: 'Opaque'
+          }
+        };
+        gltf.extensions.VRM.materialProperties.push(mtoonProp);
       }
 
       // 5.4 メッシュの追加

@@ -6,8 +6,11 @@ import {
   ALL_FINGER_IDS,
   NailPreset,
   DEFAULT_NAIL_PRESET,
-  NailTextureOption
+  NailTextureOption,
+  NailMaterialType,
+  NailMToonParams
 } from './types';
+import { NailMaterialManager } from './NailMaterialManager';
 
 export interface LoadedNailAsset {
   fingerId: FingerId;
@@ -74,17 +77,11 @@ export class NailModelLoader {
             morphTargetNames.push(...Object.keys(mesh.morphTargetDictionary));
           }
         }
-        // マテリアルをクローンしてテクスチャや色設定が干渉しないようにする
-        if (Array.isArray(mesh.material)) {
-          mesh.material = mesh.material.map((m) => {
-            const cloned = m.clone();
-            this.normalizeNailMaterial(cloned);
-            return cloned;
-          });
-        } else if (mesh.material) {
-          mesh.material = mesh.material.clone();
-          this.normalizeNailMaterial(mesh.material);
-        }
+        // MToonMaterial で初期化（既存テクスチャがあれば引き継ぐ）
+        const initialTexture = (mesh.material && 'map' in (mesh.material as any))
+          ? (mesh.material as any).map
+          : null;
+        mesh.material = NailMaterialManager.createMToonMaterial(initialTexture);
         // 影の設定
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -150,10 +147,7 @@ export class NailModelLoader {
       : [asset.mesh.material];
 
     for (const mat of materials) {
-      if ('map' in mat) {
-        (mat as THREE.MeshStandardMaterial).map = texture;
-        this.normalizeNailMaterial(mat);
-      }
+      NailMaterialManager.updateMaterialTexture(mat, texture);
     }
   }
 
@@ -246,6 +240,21 @@ export class NailModelLoader {
   public clearCache(): void {
     this.cache.clear();
     this.textureCache.clear();
+  }
+
+  /**
+   * 全アセットのマテリアル種別（mtoon / standard）を一括切り替え
+   */
+  public setMaterialType(
+    assets: Map<FingerId, LoadedNailAsset>,
+    type: NailMaterialType,
+    params?: NailMToonParams
+  ): void {
+    for (const asset of assets.values()) {
+      if (asset.mesh) {
+        NailMaterialManager.switchMeshMaterial(asset.mesh, type, params);
+      }
+    }
   }
 }
 

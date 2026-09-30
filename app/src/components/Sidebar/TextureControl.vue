@@ -150,6 +150,33 @@
           </div>
         </div>
       </div>
+
+      <!-- 質感・シェーダー切り替え -->
+      <div class="shader-section">
+        <div class="section-sub-header">
+          <span class="section-sub-title">質感・シェーダー</span>
+        </div>
+        <div class="shader-tabs">
+          <button
+            type="button"
+            class="shader-tab"
+            :class="{ 'shader-tab--active': materialType === 'mtoon' }"
+            @click="setMaterialType('mtoon')"
+          >
+            <span class="shader-tab__title">🎨 MToon (アニメ調)</span>
+            <span class="shader-tab__desc">アバターと調和 (推奨)</span>
+          </button>
+          <button
+            type="button"
+            class="shader-tab"
+            :class="{ 'shader-tab--active': materialType === 'standard' }"
+            @click="setMaterialType('standard')"
+          >
+            <span class="shader-tab__title">✨ Standard (リアル調)</span>
+            <span class="shader-tab__desc">物理ベース・滑らか陰影</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -163,7 +190,8 @@ import {
   CustomTextureItem,
   TextureApplyScope,
   FingerId,
-  FINGER_DEFINITIONS
+  FINGER_DEFINITIONS,
+  NailMaterialType
 } from '@/modules/nail/types';
 
 interface FormattedTexture {
@@ -349,6 +377,15 @@ export default class TextureControl extends Vue {
     } finally {
       this.downloadingId = null;
     }
+  }
+
+  get materialType(): NailMaterialType {
+    return this.$store.state.nail.materialType || 'mtoon';
+  }
+
+  private setMaterialType(type: NailMaterialType): void {
+    this.$store.commit('nail/setMaterialType', type);
+    this.$emit('material-type-change', type);
   }
 }
 </script>
@@ -703,6 +740,63 @@ export default class TextureControl extends Vue {
 
   &__icon, &__spinner {
     font-size: 10px;
+  }
+}
+
+.shader-section {
+  margin-top: $space-md;
+}
+
+.shader-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: $bg-tertiary;
+  padding: 4px;
+  border-radius: $radius-sm;
+  border: 1px solid $border-subtle;
+}
+
+.shader-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &__title {
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-secondary;
+  }
+
+  &__desc {
+    font-size: 9px;
+    color: $text-muted;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &--active {
+    background: $bg-elevated;
+    border-color: $accent-pink;
+    box-shadow: $shadow-sm;
+
+    .shader-tab__title {
+      color: $accent-pink;
+    }
+
+    .shader-tab__desc {
+      color: $text-primary;
+    }
   }
 }
 </style>

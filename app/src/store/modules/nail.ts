@@ -9,7 +9,10 @@ import {
   createDefaultFingerConfig,
   createDefaultTransform,
   CustomTextureItem,
-  TextureApplyScope
+  TextureApplyScope,
+  NailMaterialType,
+  NailMToonParams,
+  DEFAULT_MTOON_PARAMS
 } from '@/modules/nail/types';
 
 export interface GlobalScale {
@@ -31,6 +34,8 @@ export interface NailState {
   textureApplyScope: TextureApplyScope;
   fingerTextures: Record<FingerId, string>;
   customTextures: CustomTextureItem[];
+  materialType: NailMaterialType;
+  mtoonParams: NailMToonParams;
 }
 
 function getOppositeFinger(fingerId: FingerId): FingerId {
@@ -83,7 +88,9 @@ export const nailModule: Module<NailState, RootState> = {
     selectedTextureId: 'cheek',
     textureApplyScope: 'all',
     fingerTextures: createInitialFingerTextures(),
-    customTextures: []
+    customTextures: [],
+    materialType: 'mtoon',
+    mtoonParams: { ...DEFAULT_MTOON_PARAMS }
   },
   getters: {
     activeConfig: (state) => (fingerId: FingerId): FingerNailConfig => {
@@ -265,6 +272,12 @@ export const nailModule: Module<NailState, RootState> = {
           state.configs[id].morphs = {};
         }
       }
+    },
+    setMaterialType(state, type: NailMaterialType) {
+      state.materialType = type;
+    },
+    setMToonParams(state, params: Partial<NailMToonParams>) {
+      state.mtoonParams = { ...state.mtoonParams, ...params };
     }
   }
 };
