@@ -2,36 +2,37 @@
 // VRMNailAttacher Design Tokens & Variables
 // ==========================================
 
-// Color Palette (Dark Mode Base)
-$bg-primary: #121316;
-$bg-secondary: #1a1c23;
-$bg-tertiary: #242731;
-$bg-elevated: #2d313f;
-$bg-glass: rgba(26, 28, 35, 0.85);
+// Color Palette (Churun French Girly Salon Base)
+$bg-primary: #fff5f7;
+$bg-secondary: #ffffff;
+$bg-tertiary: #fff0f3;
+$bg-elevated: #ffe8ee;
+$bg-glass: rgba(255, 255, 255, 0.85);
 
-$border-subtle: rgba(255, 255, 255, 0.08);
-$border-medium: rgba(255, 255, 255, 0.15);
-$border-active: #ff6584;
+$border-subtle: #ffe0e9;
+$border-medium: #ffc2d4;
+$border-active: #ff7597;
 
 // Text Colors
-$text-primary: #f8fafc;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
-$text-inverse: #0f172a;
+$text-primary: #4a383d;
+$text-secondary: #8c737a;
+$text-muted: #b8a2a8;
+$text-inverse: #ffffff;
 
-// Accent & Brand Colors (Nail art aesthetic)
-$accent-pink: #ff6584;
-$accent-pink-hover: #ff7e98;
-$accent-purple: #8b5cf6;
-$accent-purple-hover: #a78bfa;
-$accent-blue: #38bdf8;
-$accent-gradient: linear-gradient(135deg, #ff6584 0%, #8b5cf6 100%);
+// Accent & Brand Colors (Churun Sweet aesthetic)
+$accent-pink: #ff7597;
+$accent-pink-hover: #ff8fa9;
+$accent-purple: #b99bf8;
+$accent-purple-hover: #cbb3fc;
+$accent-blue: #7ecbf8;
+$accent-gradient: linear-gradient(135deg, #ffa0b7 0%, #cbb4ff 100%);
+$accent-gradient-hover: linear-gradient(135deg, #ff8fa9 0%, #b89bf8 100%);
 
 // Status Colors
 $color-success: #10b981;
 $color-warning: #f59e0b;
-$color-error: #ef4444;
-$color-info: #3b82f6;
+$color-error: #f43f5e;
+$color-info: #60a5fa;
 
 // Typography
 $font-family-base: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -49,16 +50,16 @@ $space-lg: 24px;
 $space-xl: 32px;
 
 // Border Radius
-$radius-sm: 6px;
-$radius-md: 10px;
-$radius-lg: 16px;
+$radius-sm: 8px;
+$radius-md: 14px;
+$radius-lg: 20px;
 $radius-full: 9999px;
 
 // Shadows & Glow
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-$glow-pink: 0 0 15px rgba(255, 101, 132, 0.35);
+$shadow-sm: 0 2px 6px rgba(230, 140, 165, 0.12);
+$shadow-md: 0 4px 16px rgba(230, 140, 165, 0.16);
+$shadow-lg: 0 10px 30px rgba(230, 140, 165, 0.22);
+$glow-pink: 0 0 16px rgba(255, 117, 151, 0.35);
 
 // Transitions
 $transition-fast: 0.15s ease;

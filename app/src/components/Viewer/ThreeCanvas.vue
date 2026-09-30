@@ -702,7 +702,7 @@ export default class ThreeCanvas extends Vue {
   height: 100%;
   position: relative;
   overflow: hidden;
-  background-color: #131418;
+  background-color: #faf0f4;
 }
 
 .canvas-host {
@@ -717,9 +717,9 @@ export default class ThreeCanvas extends Vue {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 101, 132, 0.2);
+  background: rgba(255, 117, 151, 0.15);
   border: 3px dashed $accent-pink;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -732,6 +732,7 @@ export default class ThreeCanvas extends Vue {
     border-radius: $radius-lg;
     text-align: center;
     box-shadow: $shadow-lg;
+    border: 1px solid $border-medium;
   }
 
   &__icon {
@@ -754,7 +755,7 @@ export default class ThreeCanvas extends Vue {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(18, 19, 22, 0.75);
+  background: rgba(74, 56, 61, 0.35);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -773,22 +774,22 @@ export default class ThreeCanvas extends Vue {
 
   &__message {
     font-size: $font-size-sm;
-    font-weight: 500;
+    font-weight: 600;
     margin: $space-md 0 $space-sm;
     color: $text-primary;
   }
 
   &__percent {
     font-size: $font-size-xs;
-    color: $text-muted;
-    font-weight: 600;
+    color: $accent-pink;
+    font-weight: 700;
   }
 }
 
 .loading-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(255, 101, 132, 0.2);
+  border: 3px solid rgba(255, 117, 151, 0.2);
   border-top-color: $accent-pink;
   border-radius: 50%;
   margin: 0 auto;
@@ -822,15 +823,15 @@ export default class ThreeCanvas extends Vue {
   bottom: $space-lg;
   left: 50%;
   transform: translateX(-50%);
-  background: $bg-glass;
-  backdrop-filter: blur(12px);
-  border: 1px solid $border-subtle;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid $border-medium;
   border-radius: $radius-full;
-  padding: 6px 12px;
+  padding: 6px 14px;
   display: flex;
   align-items: center;
   gap: $space-sm;
-  box-shadow: $shadow-md;
+  box-shadow: 0 6px 20px rgba(230, 140, 165, 0.22);
   z-index: 20;
 }
 
@@ -851,23 +852,24 @@ export default class ThreeCanvas extends Vue {
   padding: 6px 12px;
   border-radius: $radius-full;
   font-size: $font-size-xs;
-  font-weight: 500;
+  font-weight: 600;
   color: $text-secondary;
   background: transparent;
   transition: all $transition-fast;
 
   &:hover {
-    color: $text-primary;
-    background: rgba(255, 255, 255, 0.08);
+    color: $accent-pink;
+    background: $bg-tertiary;
   }
 
   &--active {
     color: #ffffff;
-    background: rgba(255, 101, 132, 0.25);
-    border: 1px solid rgba(255, 101, 132, 0.4);
+    background: $accent-gradient;
+    box-shadow: 0 2px 8px rgba(255, 117, 151, 0.35);
 
     &:hover {
-      background: rgba(255, 101, 132, 0.35);
+      background: $accent-gradient-hover;
+      color: #ffffff;
     }
   }
 }

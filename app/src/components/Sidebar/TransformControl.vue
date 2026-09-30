@@ -217,10 +217,11 @@ export default class TransformControl extends Vue {
 }
 
 .control-group {
-  background: $bg-secondary;
+  background: #ffffff;
   border: 1px solid $border-subtle;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   padding: $space-sm $space-md;
+  box-shadow: 0 2px 10px rgba(230, 140, 165, 0.06);
 
   &__header {
     margin-bottom: $space-xs;
@@ -228,7 +229,7 @@ export default class TransformControl extends Vue {
 
   &__title {
     font-size: $font-size-xs;
-    font-weight: 600;
+    font-weight: 700;
     color: $text-secondary;
   }
 }
@@ -243,17 +244,13 @@ export default class TransformControl extends Vue {
 .slider-label {
   width: 105px;
   font-size: 11px;
-  color: $text-muted;
+  color: $text-secondary;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 input[type='range'] {
   flex: 1;
-  height: 4px;
-  border-radius: $radius-full;
-  background: $bg-elevated;
-  accent-color: $accent-pink;
-  cursor: pointer;
 }
 
 .slider-val {
@@ -262,6 +259,7 @@ input[type='range'] {
   font-size: 11px;
   font-family: monospace;
   color: $text-primary;
+  font-weight: 600;
 }
 
 .action-buttons {
@@ -271,7 +269,9 @@ input[type='range'] {
 }
 
 .btn--sm {
-  padding: 5px 10px;
+  padding: 5px 12px;
   font-size: 11px;
+  border-radius: $radius-full;
+  font-weight: 600;
 }
 </style>

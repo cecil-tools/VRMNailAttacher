@@ -282,8 +282,8 @@ export default class NailControlPanel extends Vue {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: $bg-elevated;
-  transition: 0.2s;
+  background-color: #f0d5de;
+  transition: 0.25s ease;
 
   &:before {
     position: absolute;
@@ -293,7 +293,8 @@ export default class NailControlPanel extends Vue {
     left: 3px;
     bottom: 3px;
     background-color: #ffffff;
-    transition: 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &.round {
@@ -306,7 +307,8 @@ export default class NailControlPanel extends Vue {
 }
 
 input:checked + .slider {
-  background-color: $accent-pink;
+  background: $accent-gradient;
+  box-shadow: 0 2px 8px rgba(255, 117, 151, 0.35);
 }
 
 input:checked + .slider:before {
@@ -324,8 +326,8 @@ input:disabled + .slider {
   align-items: center;
   justify-content: space-between;
   padding: $space-sm $space-md;
-  background: rgba(255, 101, 132, 0.08);
-  border: 1px solid rgba(255, 101, 132, 0.25);
+  background: rgba(255, 117, 151, 0.08);
+  border: 1px solid rgba(255, 117, 151, 0.25);
   border-radius: $radius-md;
   margin-bottom: $space-xs;
 }
@@ -353,10 +355,10 @@ input:disabled + .slider {
 
 .mesh-fit-badge {
   font-size: 10px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: $radius-sm;
-  background: rgba(255, 101, 132, 0.2);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  background: rgba(255, 117, 151, 0.15);
   color: $accent-pink;
 }
 </style>

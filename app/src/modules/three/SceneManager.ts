@@ -29,7 +29,7 @@ export class SceneManager {
 
     // 1. Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x131418);
+    this.scene.background = new THREE.Color(0xfaf0f4);
 
     // 2. Camera
     const aspect = container.clientWidth / (container.clientHeight || 1);
@@ -60,7 +60,7 @@ export class SceneManager {
     this.setupLights();
 
     // 6. Grid Helper
-    this.gridHelper = new THREE.GridHelper(10, 20, 0xff6584, 0x2d313f);
+    this.gridHelper = new THREE.GridHelper(10, 20, 0xff7597, 0xf0d5de);
     this.gridHelper.position.y = 0;
     this.scene.add(this.gridHelper);
 
