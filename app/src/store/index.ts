@@ -35,12 +35,6 @@ export default new Vuex.Store<RootState>({
     showGrid: true,
     presetModels: [
       {
-        id: 'vrm-1.0-jitome',
-        name: 'Jitome (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/jitome.vrm',
-        version: '1.0'
-      },
-      {
         id: 'vrm-0.x-default',
         name: 'Default (VRM 0.x)',
         path: process.env.BASE_URL + 'models/vrm/0.x/default.vrm',
@@ -51,6 +45,12 @@ export default new Vuex.Store<RootState>({
         name: 'Jitome (VRM 0.x)',
         path: process.env.BASE_URL + 'models/vrm/0.x/jitome.vrm',
         version: '0.x'
+      },
+      {
+        id: 'vrm-1.0-jitome',
+        name: 'Jitome (VRM 1.0)',
+        path: process.env.BASE_URL + 'models/vrm/1.0/jitome.vrm',
+        version: '1.0'
       }
     ]
   },
