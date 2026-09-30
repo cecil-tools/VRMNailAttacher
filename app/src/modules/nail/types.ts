@@ -67,6 +67,23 @@ export interface NailTextureOption {
   fileName: string;
 }
 
+export interface NailTemplateOption {
+  id: string;
+  label: string;
+  fileName: string;
+  downloadFileName: string;
+  description: string;
+}
+
+export interface CustomTextureItem {
+  id: string;
+  name: string;
+  dataUrl: string;
+  createdAt: number;
+}
+
+export type TextureApplyScope = 'all' | 'single';
+
 export interface NailPreset {
   id: string;
   name: string;
@@ -79,6 +96,7 @@ export interface NailPreset {
     heightOffset: { thumb: number; other: number };
   };
   textures: NailTextureOption[];
+  templates: NailTemplateOption[];
   defaultTextureId?: string;
   supportedMorphs: string[];
 }
@@ -113,6 +131,29 @@ export const RYUKI_PRESET: NailPreset = {
     { id: 'baby_boomers', label: 'ベイビーブーマー (Baby Boomers)', fileName: 'textures/Texture_BabyBoomers.png' },
     { id: 'base', label: 'ベース (Base)', fileName: 'textures/Texture_Base.png' }
   ],
+  templates: [
+    {
+      id: 'base_png',
+      label: 'ベーステクスチャ (PNG)',
+      fileName: 'textures/Texture_Base.png',
+      downloadFileName: 'Ryuki_Nail_Texture_Base.png',
+      description: 'ペイント描画の基準となる無地テクスチャ'
+    },
+    {
+      id: 'uv_map',
+      label: 'UV展開マップ (PNG)',
+      fileName: 'textures/UVmaps.png',
+      downloadFileName: 'Ryuki_Nail_UVmaps.png',
+      description: '爪のポリゴン境界・UV展開ガイド'
+    },
+    {
+      id: 'psd_template',
+      label: '編集用テンプレート (PSD)',
+      fileName: 'textures/Texture_PSD.psd',
+      downloadFileName: 'Ryuki_Nail_Template.psd',
+      description: 'レイヤー分けされたPhotoshop編集元データ'
+    }
+  ],
   defaultTextureId: 'cheek',
   supportedMorphs: []
 };
@@ -134,6 +175,7 @@ export const MDOLLNAIL_PRESET: NailPreset = {
     heightOffset: { thumb: 0.0020, other: 0.0010 }
   },
   textures: [],
+  templates: [],
   supportedMorphs: ['flat', 'curl', 'curl_front', 'curl_back']
 };
 

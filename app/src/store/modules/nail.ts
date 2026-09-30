@@ -7,7 +7,9 @@ import {
   NailTransform,
   ALL_FINGER_IDS,
   createDefaultFingerConfig,
-  createDefaultTransform
+  createDefaultTransform,
+  CustomTextureItem,
+  TextureApplyScope
 } from '@/modules/nail/types';
 
 export interface GlobalScale {
@@ -26,6 +28,9 @@ export interface NailState {
   configs: Record<FingerId, FingerNailConfig>;
   availableMorphNames: string[];
   selectedTextureId: string | null;
+  textureApplyScope: TextureApplyScope;
+  fingerTextures: Record<FingerId, string>;
+  customTextures: CustomTextureItem[];
 }
 
 function getOppositeFinger(fingerId: FingerId): FingerId {
@@ -52,6 +57,14 @@ function createInitialConfigs(): Record<FingerId, FingerNailConfig> {
   return configs as Record<FingerId, FingerNailConfig>;
 }
 
+function createInitialFingerTextures(): Record<FingerId, string> {
+  const map: Partial<Record<FingerId, string>> = {};
+  for (const id of ALL_FINGER_IDS) {
+    map[id] = 'cheek';
+  }
+  return map as Record<FingerId, string>;
+}
+
 export const nailModule: Module<NailState, RootState> = {
   namespaced: true,
   state: {
@@ -67,7 +80,10 @@ export const nailModule: Module<NailState, RootState> = {
     },
     configs: createInitialConfigs(),
     availableMorphNames: [],
-    selectedTextureId: 'cheek'
+    selectedTextureId: 'cheek',
+    textureApplyScope: 'all',
+    fingerTextures: createInitialFingerTextures(),
+    customTextures: []
   },
   getters: {
     activeConfig: (state) => (fingerId: FingerId): FingerNailConfig => {
@@ -78,6 +94,9 @@ export const nailModule: Module<NailState, RootState> = {
         ? 'leftIndex'
         : state.selectedFinger;
       return state.configs[fid];
+    },
+    fingerTexture: (state) => (fingerId: FingerId): string => {
+      return state.fingerTextures[fingerId] || state.selectedTextureId || 'cheek';
     }
   },
   mutations: {
@@ -98,6 +117,37 @@ export const nailModule: Module<NailState, RootState> = {
     },
     setSelectedTextureId(state, textureId: string | null) {
       state.selectedTextureId = textureId;
+    },
+    setTextureApplyScope(state, scope: TextureApplyScope) {
+      state.textureApplyScope = scope;
+    },
+    setFingerTexture(state, payload: { fingerId: FingerId; textureId: string; skipSymmetry?: boolean }) {
+      const { fingerId, textureId, skipSymmetry } = payload;
+      state.fingerTextures = {
+        ...state.fingerTextures,
+        [fingerId]: textureId
+      };
+      if (state.symmetrySync && !skipSymmetry) {
+        const oppId = getOppositeFinger(fingerId);
+        state.fingerTextures = {
+          ...state.fingerTextures,
+          [oppId]: textureId
+        };
+      }
+    },
+    setAllFingerTextures(state, textureId: string) {
+      const newMap: Partial<Record<FingerId, string>> = {};
+      for (const id of ALL_FINGER_IDS) {
+        newMap[id] = textureId;
+      }
+      state.fingerTextures = newMap as Record<FingerId, string>;
+      state.selectedTextureId = textureId;
+    },
+    addCustomTexture(state, item: CustomTextureItem) {
+      state.customTextures = [item, ...state.customTextures.filter((t) => t.id !== item.id)];
+    },
+    removeCustomTexture(state, id: string) {
+      state.customTextures = state.customTextures.filter((t) => t.id !== id);
     },
     updateFingerTransform(
       state,

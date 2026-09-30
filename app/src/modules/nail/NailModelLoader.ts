@@ -130,6 +130,56 @@ export class NailModelLoader {
   }
 
   /**
+   * DataURL（アップロード画像）からテクスチャを非同期ロード（キャッシュ付き）
+   */
+  public async loadTextureFromDataUrl(dataUrl: string, cacheKey?: string): Promise<THREE.Texture> {
+    const key = cacheKey || dataUrl;
+    let texture = this.textureCache.get(key);
+    if (!texture) {
+      texture = await this.textureLoader.loadAsync(dataUrl);
+      texture.flipY = false;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      this.textureCache.set(key, texture);
+    }
+    return texture;
+  }
+
+  /**
+   * 指定した指のアセット群にテクスチャを適用
+   */
+  public applyTextureToFingers(
+    assets: Map<FingerId, LoadedNailAsset>,
+    fingerIds: FingerId[],
+    texture: THREE.Texture
+  ): void {
+    for (const id of fingerIds) {
+      const asset = assets.get(id);
+      if (asset) {
+        this.applyTextureToAsset(asset, texture);
+      }
+    }
+  }
+
+  /**
+   * プリセットテクスチャをロード
+   */
+  public async loadPresetTexture(textureOption: NailTextureOption): Promise<THREE.Texture> {
+    return this.loadTexture(textureOption.fileName);
+  }
+
+  /**
+   * 全アセットにロード済みテクスチャを適用
+   */
+  public applyLoadedTextureToAll(
+    assets: Map<FingerId, LoadedNailAsset>,
+    texture: THREE.Texture
+  ): void {
+    for (const asset of assets.values()) {
+      this.applyTextureToAsset(asset, texture);
+    }
+  }
+
+  /**
    * 全アセットに指定のテクスチャを適用
    */
   public async applyTextureToAll(
@@ -137,9 +187,7 @@ export class NailModelLoader {
     textureOption: NailTextureOption
   ): Promise<void> {
     const texture = await this.loadTexture(textureOption.fileName);
-    for (const asset of assets.values()) {
-      this.applyTextureToAsset(asset, texture);
-    }
+    this.applyLoadedTextureToAll(assets, texture);
   }
 
   /**

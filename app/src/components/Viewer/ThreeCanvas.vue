@@ -154,7 +154,9 @@ import {
   ALL_FINGER_IDS,
   FINGER_DEFINITIONS,
   getOppositeFinger,
-  NailTransform
+  NailTransform,
+  TextureApplyScope,
+  CustomTextureItem
 } from '@/modules/nail/types';
 
 @Component
@@ -348,6 +350,9 @@ export default class ThreeCanvas extends Vue {
       );
       console.log('[DEBUG] attachNails finished. isAttached:', this.nailAttacher.isAttached());
 
+      // 各指のテクスチャを復元・適用
+      await this.restoreFingerTextures();
+
       this.$store.commit('nail/setAttached', true);
       return true;
     } catch (err: any) {
@@ -360,16 +365,74 @@ export default class ThreeCanvas extends Vue {
   }
 
   /**
-   * テクスチャを切り替える
+   * テクスチャIDから THREE.Texture を解決（プリセットまたはカスタムテクスチャ）
    */
-  public async changeTexture(textureId: string): Promise<void> {
-    if (!this.loadedNailAssets) return;
+  public async resolveTexture(textureId: string): Promise<THREE.Texture | null> {
     const preset = this.nailModelLoader.getPreset();
-    const texOpt = preset.textures.find((t) => t.id === textureId);
-    if (!texOpt) return;
+    const presetTex = preset.textures.find((t) => t.id === textureId);
+    if (presetTex) {
+      return await this.nailModelLoader.loadPresetTexture(presetTex);
+    }
+    const customList: CustomTextureItem[] = this.$store.state.nail.customTextures || [];
+    const customTex = customList.find((c) => c.id === textureId);
+    if (customTex) {
+      return await this.nailModelLoader.loadTextureFromDataUrl(customTex.dataUrl, customTex.id);
+    }
+    return null;
+  }
 
-    await this.nailModelLoader.applyTextureToAll(this.loadedNailAssets, texOpt);
-    this.$store.commit('nail/setSelectedTextureId', textureId);
+  /**
+   * 保存されている各指のテクスチャ設定を 3D メッシュへ復元
+   */
+  public async restoreFingerTextures(): Promise<void> {
+    if (!this.loadedNailAssets) return;
+    const fingerTextures: Record<FingerId, string> = this.$store.state.nail.fingerTextures || {};
+    const textureToFingers = new Map<string, FingerId[]>();
+    for (const fid of ALL_FINGER_IDS) {
+      const texId = fingerTextures[fid] || this.$store.state.nail.selectedTextureId || 'cheek';
+      const list = textureToFingers.get(texId);
+      if (list) {
+        list.push(fid);
+      } else {
+        textureToFingers.set(texId, [fid]);
+      }
+    }
+
+    for (const [texId, fingerIds] of textureToFingers.entries()) {
+      const texture = await this.resolveTexture(texId);
+      if (texture) {
+        this.nailModelLoader.applyTextureToFingers(this.loadedNailAssets, fingerIds, texture);
+      }
+    }
+  }
+
+  /**
+   * テクスチャを切り替える（全指一括 または 選択指＋対称同期）
+   */
+  public async changeTexture(textureId: string, scope?: TextureApplyScope): Promise<void> {
+    if (!this.loadedNailAssets) return;
+    const targetScope = scope || this.$store.state.nail.textureApplyScope || 'all';
+    const texture = await this.resolveTexture(textureId);
+    if (!texture) {
+      console.warn(`[ThreeCanvas] Texture not found for id: ${textureId}`);
+      return;
+    }
+
+    if (targetScope === 'all') {
+      this.nailModelLoader.applyLoadedTextureToAll(this.loadedNailAssets, texture);
+      this.$store.commit('nail/setAllFingerTextures', textureId);
+    } else {
+      const selFinger = this.getCurrentTargetFingerId();
+      const targetFingerIds: FingerId[] = [selFinger];
+      if (this.$store.state.nail.symmetrySync) {
+        targetFingerIds.push(getOppositeFinger(selFinger));
+      }
+      this.nailModelLoader.applyTextureToFingers(this.loadedNailAssets, targetFingerIds, texture);
+      this.$store.commit('nail/setFingerTexture', {
+        fingerId: selFinger,
+        textureId
+      });
+    }
   }
 
   /**
