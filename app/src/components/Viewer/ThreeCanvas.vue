@@ -142,7 +142,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Ref } from 'vue-property-decorator';
+import { Component, Vue, Ref, Watch } from 'vue-property-decorator';
 import * as THREE from 'three';
 import { SceneManager, FocusTarget, ViewAngle, CameraPreset } from '@/modules/three/SceneManager';
 import { VRMLoader } from '@/modules/vrm/VRMLoader';
@@ -345,11 +345,13 @@ export default class ThreeCanvas extends Vue {
 
       // ボーンへアタッチ
       console.log('[DEBUG] attachNails calling attachAll...');
+      const autoMeshFit = this.$store.state.nail?.autoMeshFit ?? true;
       this.nailAttacher.attachAll(
         vrm,
         this.loadedNailAssets,
         this.$store.state.nail.configs,
-        this.nailModelLoader.getPreset()
+        this.nailModelLoader.getPreset(),
+        autoMeshFit
       );
       console.log('[DEBUG] attachNails finished. isAttached:', this.nailAttacher.isAttached());
 
@@ -365,6 +367,29 @@ export default class ThreeCanvas extends Vue {
     } finally {
       this.$store.commit('nail/setLoading', false);
     }
+  }
+
+  /**
+   * 自動フィット設定などの切り替え時に再アタッチを実行
+   */
+  public async reAttachNails(): Promise<void> {
+    const vrm = this.vrmLoader.currentVRM;
+    if (!vrm || !this.loadedNailAssets || !this.nailAttacher.isAttached()) return;
+
+    const autoMeshFit = this.$store.state.nail?.autoMeshFit ?? true;
+    this.nailAttacher.attachAll(
+      vrm,
+      this.loadedNailAssets,
+      this.$store.state.nail.configs,
+      this.nailModelLoader.getPreset(),
+      autoMeshFit
+    );
+    await this.restoreFingerTextures();
+  }
+
+  @Watch('$store.state.nail.autoMeshFit')
+  onAutoMeshFitChanged() {
+    this.reAttachNails();
   }
 
   /**

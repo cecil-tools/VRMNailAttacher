@@ -36,6 +36,7 @@ export interface NailState {
   customTextures: CustomTextureItem[];
   materialType: NailMaterialType;
   mtoonParams: NailMToonParams;
+  autoMeshFit: boolean;
 }
 
 function getOppositeFinger(fingerId: FingerId): FingerId {
@@ -90,7 +91,8 @@ export const nailModule: Module<NailState, RootState> = {
     fingerTextures: createInitialFingerTextures(),
     customTextures: [],
     materialType: 'mtoon',
-    mtoonParams: { ...DEFAULT_MTOON_PARAMS }
+    mtoonParams: { ...DEFAULT_MTOON_PARAMS },
+    autoMeshFit: true
   },
   getters: {
     activeConfig: (state) => (fingerId: FingerId): FingerNailConfig => {
@@ -107,6 +109,9 @@ export const nailModule: Module<NailState, RootState> = {
     }
   },
   mutations: {
+    setAutoMeshFit(state, fit: boolean) {
+      state.autoMeshFit = fit;
+    },
     setAttached(state, attached: boolean) {
       state.isAttached = attached;
     },

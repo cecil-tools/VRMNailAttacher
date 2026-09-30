@@ -28,6 +28,19 @@
 
     <!-- Active Nail Controls -->
     <div v-else-if="isAttached" class="panel-content">
+      <!-- Auto Mesh Fit Option Bar -->
+      <div class="mesh-fit-bar">
+        <label class="mesh-fit-label" title="指の肉付き・表面高さに合わせて爪の位置を自動最適化します">
+          <input
+            type="checkbox"
+            :checked="autoMeshFit"
+            @change="onToggleAutoMeshFit"
+          />
+          <span class="mesh-fit-text">✨ 指メッシュに自動フィット</span>
+        </label>
+        <span class="mesh-fit-badge">自動補正</span>
+      </div>
+
       <!-- Global Scale Controls (全指一括サイズ調整) -->
       <GlobalScaleControl
         @global-scale-change="onGlobalScaleChange"
@@ -105,6 +118,15 @@ export default class NailControlPanel extends Vue {
 
   get isLoading(): boolean {
     return this.$store.state.nail?.isLoading || false;
+  }
+
+  get autoMeshFit(): boolean {
+    return this.$store.state.nail?.autoMeshFit ?? true;
+  }
+
+  private onToggleAutoMeshFit(e: Event) {
+    const target = e.target as HTMLInputElement;
+    this.$store.commit('nail/setAutoMeshFit', target.checked);
   }
 
   private onToggleAttach(e: Event) {
@@ -294,5 +316,47 @@ input:checked + .slider:before {
 input:disabled + .slider {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Mesh Fit Bar */
+.mesh-fit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-md;
+  background: rgba(255, 101, 132, 0.08);
+  border: 1px solid rgba(255, 101, 132, 0.25);
+  border-radius: $radius-md;
+  margin-bottom: $space-xs;
+}
+
+.mesh-fit-label {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    accent-color: $accent-pink;
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.mesh-fit-text {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.mesh-fit-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+  background: rgba(255, 101, 132, 0.2);
+  color: $accent-pink;
 }
 </style>

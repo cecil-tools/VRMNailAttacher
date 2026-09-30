@@ -12,18 +12,22 @@ import {
 import { LoadedNailAsset } from './NailModelLoader';
 import { BoneDetector } from './BoneDetector';
 
+import { FingerMeshAnalyzer, FingerMeshBounds } from './FingerMeshAnalyzer';
+
 export interface AttachedFingerNail {
   fingerId: FingerId;
   boneNode: THREE.Object3D;
   anchorNode: THREE.Group;
   offsetNode: THREE.Group;
   nailAsset: LoadedNailAsset;
+  meshBounds?: FingerMeshBounds;
 }
 
 export class NailAttacher {
   private attachedMap: Map<FingerId, AttachedFingerNail> = new Map();
   private currentVRM: VRM | null = null;
   private currentPreset: NailPreset = DEFAULT_NAIL_PRESET;
+  private meshBoundsMap: Map<FingerId, FingerMeshBounds> = new Map();
 
   /**
    * VRM モデルに対して全ネイルをアタッチする
@@ -32,7 +36,8 @@ export class NailAttacher {
     vrm: VRM,
     nailAssets: Map<FingerId, LoadedNailAsset>,
     configs: Record<FingerId, FingerNailConfig>,
-    preset: NailPreset = DEFAULT_NAIL_PRESET
+    preset: NailPreset = DEFAULT_NAIL_PRESET,
+    autoMeshFit = true
   ): void {
     // 既存のネイルをクリーンアップ
     this.detachAll();
@@ -41,6 +46,11 @@ export class NailAttacher {
 
     const boneInfos = BoneDetector.detectAllFingers(vrm);
     const alignment = preset.alignment;
+
+    // 指先メッシュの幾何解析を実行（指が太い・細いモデルに合わせて自動調整）
+    this.meshBoundsMap = autoMeshFit
+      ? FingerMeshAnalyzer.analyzeAllFingers(vrm, boneInfos)
+      : new Map();
 
     for (const fingerId of ALL_FINGER_IDS) {
       const asset = nailAssets.get(fingerId);
@@ -68,15 +78,27 @@ export class NailAttacher {
       const rotMatrix = new THREE.Matrix4().makeBasis(sideVec, up, fwd);
       const targetWorldQuat = new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
 
-      // 先端位置 (ボーン起点 + 前方オフセット + 背側高さオフセット)
-      const fwdRatio = isThumb ? alignment.forwardOffsetRatio.thumb : alignment.forwardOffsetRatio.other;
-      const hOffset = isThumb ? alignment.heightOffset.thumb : alignment.heightOffset.other;
+      // 先端位置の算出: メッシュ解析結果が存在する場合は指表面にフィット、なければボーン比率フォールバック
+      const meshBounds = this.meshBoundsMap.get(fingerId);
+      let forwardOffset: number;
+      let heightOffset: number;
+      let sideOffset = 0;
 
-      const forwardOffset = boneInfo.length * fwdRatio;
-      const heightOffset = hOffset;
+      if (meshBounds) {
+        forwardOffset = meshBounds.suggestedOffset.forward;
+        heightOffset = meshBounds.suggestedOffset.height;
+        sideOffset = meshBounds.suggestedOffset.side;
+      } else {
+        const fwdRatio = isThumb ? alignment.forwardOffsetRatio.thumb : alignment.forwardOffsetRatio.other;
+        const hOffset = isThumb ? alignment.heightOffset.thumb : alignment.heightOffset.other;
+        forwardOffset = boneInfo.length * fwdRatio;
+        heightOffset = hOffset;
+      }
+
       const targetWorldPos = boneInfo.worldPosition.clone()
         .addScaledVector(fwd, forwardOffset)
-        .addScaledVector(up, heightOffset);
+        .addScaledVector(up, heightOffset)
+        .addScaledVector(sideVec, sideOffset);
 
       // 2. boneNode のローカル空間への座標変換
       boneNode.updateWorldMatrix(true, false);
@@ -122,7 +144,8 @@ export class NailAttacher {
         boneNode,
         anchorNode,
         offsetNode,
-        nailAsset: asset
+        nailAsset: asset,
+        meshBounds
       };
 
       this.attachedMap.set(fingerId, attached);
@@ -240,5 +263,13 @@ export class NailAttacher {
 
   public isAttached(): boolean {
     return this.attachedMap.size > 0;
+  }
+
+  public getMeshBounds(fingerId: FingerId): FingerMeshBounds | undefined {
+    return this.meshBoundsMap.get(fingerId);
+  }
+
+  public getAllMeshBounds(): Map<FingerId, FingerMeshBounds> {
+    return this.meshBoundsMap;
   }
 }
