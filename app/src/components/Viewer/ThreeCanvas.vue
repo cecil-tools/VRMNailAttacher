@@ -172,7 +172,7 @@ export default class ThreeCanvas extends Vue {
   private loadedNailAssets: Map<FingerId, LoadedNailAsset> | null = null;
 
   private isDragging = false;
-  private currentFocus: FocusTarget = 'fingertip';
+  private currentFocus: FocusTarget = 'leftHand';
   private currentAngle: ViewAngle = 'top';
   private currentPose: 'tpose' | 'nail' = 'tpose';
   private gridVisible = true;
@@ -208,7 +208,7 @@ export default class ThreeCanvas extends Vue {
       }
     });
 
-    // 初期カメラを現在のフォーカス（指先）とアングル（真上）に設定
+    // 初期カメラを現在のフォーカス（左手）とアングル（真上）に設定
     this.sceneManager.currentFocus = this.currentFocus;
     this.sceneManager.currentAngle = this.currentAngle;
     this.sceneManager.updateCamera(this.currentFocus, this.currentAngle);
@@ -520,21 +520,155 @@ export default class ThreeCanvas extends Vue {
   }
 
   /**
-   * アバター読み込み後の初期カメラ位置（左手・真上・指先にフォーカス）を設定
+   * アバター読み込み後の初期カメラ位置（左手・真上・全指が収まるようフォーカス）を設定
    */
   public applyInitialCameraView(fingerId?: FingerId): void {
     if (!this.sceneManager) return;
     const targetFinger: FingerId = fingerId || 'leftIndex';
     this.$store.commit('nail/setSelectedFinger', targetFinger);
-    this.currentFocus = 'fingertip';
+    this.currentFocus = 'leftHand';
     this.currentAngle = 'top';
-    this.sceneManager.currentFocus = 'fingertip';
+    this.sceneManager.currentFocus = 'leftHand';
     this.sceneManager.currentAngle = 'top';
 
     if (this.vrmLoader.currentVRM?.scene) {
       this.vrmLoader.currentVRM.scene.updateMatrixWorld(true);
     }
-    this.focusFinger(targetFinger);
+    this.focusHand('left');
+  }
+
+  /**
+   * 指定した手（左手または右手）の全指・手首が画面内に美しく収まるようカメラ位置・距離を自動調整
+   */
+  public focusHand(side: 'left' | 'right' = 'left'): void {
+    if (!this.sceneManager) return;
+
+    const vrm = this.vrmLoader.currentVRM;
+    const isLeft = side === 'left';
+    this.currentFocus = isLeft ? 'leftHand' : 'rightHand';
+    this.sceneManager.currentFocus = this.currentFocus;
+
+    const points: THREE.Vector3[] = [];
+
+    // 1. 各指先の位置（ネイルアンカーまたはDistalボーン）
+    const fingerIds: FingerId[] = isLeft
+      ? ['leftThumb', 'leftIndex', 'leftMiddle', 'leftRing', 'leftLittle']
+      : ['rightThumb', 'rightIndex', 'rightMiddle', 'rightRing', 'rightLittle'];
+
+    for (const id of fingerIds) {
+      const tipPos = this.getFingerTipPosition(id);
+      if (tipPos) {
+        points.push(tipPos);
+      }
+    }
+
+    // 2. 手首（Handボーン）および各指の付け根（Proximalボーン）
+    if (vrm) {
+      const wristBoneName = isLeft ? 'leftHand' : 'rightHand';
+      const wristNode =
+        vrm.humanoid?.getNormalizedBoneNode(wristBoneName as any) ||
+        vrm.humanoid?.getRawBoneNode(wristBoneName as any);
+      if (wristNode) {
+        wristNode.updateWorldMatrix(true, false);
+        const p = new THREE.Vector3();
+        wristNode.getWorldPosition(p);
+        points.push(p);
+      }
+
+      const proximalBones = isLeft
+        ? [
+            'leftThumbMetacarpal',
+            'leftThumbProximal',
+            'leftIndexProximal',
+            'leftMiddleProximal',
+            'leftRingProximal',
+            'leftLittleProximal'
+          ]
+        : [
+            'rightThumbMetacarpal',
+            'rightThumbProximal',
+            'rightIndexProximal',
+            'rightMiddleProximal',
+            'rightRingProximal',
+            'rightLittleProximal'
+          ];
+
+      for (const boneName of proximalBones) {
+        const node =
+          vrm.humanoid?.getNormalizedBoneNode(boneName as any) ||
+          vrm.humanoid?.getRawBoneNode(boneName as any);
+        if (node) {
+          node.updateWorldMatrix(true, false);
+          const p = new THREE.Vector3();
+          node.getWorldPosition(p);
+          points.push(p);
+        }
+      }
+    }
+
+    // 手のランドマーク座標から中心と大きさを算出
+    let center = new THREE.Vector3();
+    let distance = 0.42;
+
+    if (points.length > 0) {
+      const box = new THREE.Box3();
+      for (const p of points) {
+        box.expandByPoint(p);
+      }
+      box.getCenter(center);
+
+      // バウンディングスフィアの半径から必要なカメラ距離を計算
+      const sphere = new THREE.Sphere();
+      box.getBoundingSphere(sphere);
+      const radius = Math.max(sphere.radius, 0.09); // 最低9cm
+
+      const camera = this.sceneManager.camera;
+      const fovRad = (camera.fov * Math.PI) / 180;
+      const aspect = camera.aspect || 1.0;
+      const hFovRad = 2 * Math.atan(Math.tan(fovRad / 2) * aspect);
+
+      const distV = radius / Math.sin(fovRad / 2);
+      const distH = radius / Math.sin(hFovRad / 2);
+      const reqDist = Math.max(distV, distH);
+
+      // ツールバーや画面端の余白を考慮して 1.45 倍のマージンを確保（最低 0.40m）
+      distance = Math.max(0.40, reqDist * 1.45);
+    } else {
+      // フォールバック: ボーン位置基準
+      const handPos = this.sceneManager.getBoneWorldPosition(isLeft ? 'leftHand' : 'rightHand');
+      center = new THREE.Vector3(
+        handPos.x + (isLeft ? 0.08 : -0.08),
+        handPos.y,
+        handPos.z
+      );
+      distance = 0.42;
+    }
+
+    // カメラとOrbitControlsを更新
+    this.sceneManager.controls.target.copy(center);
+    const isTop = this.currentAngle === 'top';
+
+    if (isTop) {
+      // 真上（俯瞰）: +Y 方向から見下ろす（特異点回避のため微小な +0.001 Z）
+      this.sceneManager.camera.position.set(
+        center.x,
+        center.y + distance,
+        center.z + 0.001
+      );
+    } else {
+      // 斜め正面
+      this.sceneManager.camera.position.set(
+        center.x,
+        center.y + distance * 0.25,
+        center.z + distance * 0.95
+      );
+    }
+
+    this.sceneManager.controls.update();
+  }
+
+  public getCurrentFocus(): FocusTarget {
+    return this.currentFocus;
   }
 
   /**
@@ -545,7 +679,7 @@ export default class ThreeCanvas extends Vue {
     this.currentFocus = 'fingertip';
     const worldPos = this.getFingerTipPosition(targetFingerId);
     if (worldPos && this.sceneManager) {
-      this.sceneManager.focusOnPoint(worldPos);
+      this.sceneManager.focusOnPoint(worldPos, 0.24);
     }
   }
 
@@ -593,6 +727,10 @@ export default class ThreeCanvas extends Vue {
       if (this.sceneManager) {
         if (this.currentFocus === 'fingertip') {
           this.focusFinger();
+        } else if (this.currentFocus === 'leftHand') {
+          this.focusHand('left');
+        } else if (this.currentFocus === 'rightHand') {
+          this.focusHand('right');
         } else {
           this.sceneManager.updateCamera();
         }
@@ -604,6 +742,10 @@ export default class ThreeCanvas extends Vue {
     this.currentFocus = focus;
     if (focus === 'fingertip') {
       this.focusFinger();
+    } else if (focus === 'leftHand') {
+      this.focusHand('left');
+    } else if (focus === 'rightHand') {
+      this.focusHand('right');
     } else if (this.sceneManager) {
       this.sceneManager.updateCamera(focus, this.currentAngle);
     }
@@ -613,6 +755,10 @@ export default class ThreeCanvas extends Vue {
     this.currentAngle = angle;
     if (this.currentFocus === 'fingertip') {
       this.focusFinger();
+    } else if (this.currentFocus === 'leftHand') {
+      this.focusHand('left');
+    } else if (this.currentFocus === 'rightHand') {
+      this.focusHand('right');
     } else if (this.sceneManager) {
       this.sceneManager.updateCamera(this.currentFocus, angle);
     }

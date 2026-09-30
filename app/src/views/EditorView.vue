@@ -423,8 +423,23 @@ export default class EditorView extends Vue {
   }
 
   private onSelectFinger(fingerId: FingerId) {
-    // 選択された指先へ自動でカメラを寄せる
     if (this.threeCanvas) {
+      const currentFocus = this.threeCanvas.getCurrentFocus();
+      if (currentFocus === 'leftHand') {
+        if (fingerId.startsWith('left')) {
+          return; // 左手表示中は全指が見えているため全体ビューを維持
+        } else {
+          this.threeCanvas.focusHand('right');
+          return;
+        }
+      } else if (currentFocus === 'rightHand') {
+        if (fingerId.startsWith('right')) {
+          return; // 右手表示中は全指が見えているため全体ビューを維持
+        } else {
+          this.threeCanvas.focusHand('left');
+          return;
+        }
+      }
       this.threeCanvas.focusFinger(fingerId);
     }
   }
