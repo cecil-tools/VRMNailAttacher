@@ -95,8 +95,8 @@ export const RYUKI_PRESET: NailPreset = {
     little: 'glb/Little.glb'
   },
   alignment: {
-    // -X(先端) -> +Z(指先), -Z(上面) -> +Y(背側), +Y(幅) -> +X(幅)
-    rotationEuler: [Math.PI / 2, 0, -Math.PI / 2],
+    // -X(先端) -> +Z(指先), +Y(上面) -> +Y(背側), +Z(幅) -> +X(幅)
+    rotationEuler: [0, Math.PI / 2, 0],
     originOffsetRatioZ: {
       thumb: 0.0095,
       index: 0.0088,
