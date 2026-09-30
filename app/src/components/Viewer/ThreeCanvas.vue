@@ -42,6 +42,14 @@
         </button>
         <button
           class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': currentFocus === 'fingertip' }"
+          title="選択中の指先を拡大フォーカス"
+          @click="changeFocus('fingertip')"
+        >
+          <span>☝️ 指先</span>
+        </button>
+        <button
+          class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'leftHand' }"
           title="左手フォーカス"
           @click="changeFocus('leftHand')"
@@ -135,12 +143,19 @@
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
+import * as THREE from 'three';
 import { SceneManager, FocusTarget, ViewAngle, CameraPreset } from '@/modules/three/SceneManager';
 import { VRMLoader } from '@/modules/vrm/VRMLoader';
 import { VRM } from '@pixiv/three-vrm';
 import { NailModelLoader, LoadedNailAsset } from '@/modules/nail/NailModelLoader';
 import { NailAttacher } from '@/modules/nail/NailAttacher';
-import { FingerId, ALL_FINGER_IDS, getOppositeFinger, NailTransform } from '@/modules/nail/types';
+import {
+  FingerId,
+  ALL_FINGER_IDS,
+  FINGER_DEFINITIONS,
+  getOppositeFinger,
+  NailTransform
+} from '@/modules/nail/types';
 
 @Component
 export default class ThreeCanvas extends Vue {
@@ -420,13 +435,43 @@ export default class ThreeCanvas extends Vue {
   }
 
   /**
-   * 指定指先へカメラをフォーカス
+   * 現在選択中の指先または指定の指先へカメラをフォーカス
    */
-  public focusFinger(fingerId: FingerId): void {
-    const worldPos = this.nailAttacher.getFingerTipWorldPosition(fingerId);
+  public focusFinger(fingerId?: FingerId): void {
+    const targetFingerId: FingerId = fingerId || this.getCurrentTargetFingerId();
+    this.currentFocus = 'fingertip';
+    const worldPos = this.getFingerTipPosition(targetFingerId);
     if (worldPos && this.sceneManager) {
       this.sceneManager.focusOnPoint(worldPos);
     }
+  }
+
+  private getCurrentTargetFingerId(): FingerId {
+    const sel = this.$store.state.nail?.selectedFinger as string;
+    if (sel && (sel.startsWith('left') || sel.startsWith('right'))) {
+      return sel as FingerId;
+    }
+    return 'leftIndex';
+  }
+
+  public getFingerTipPosition(fingerId: FingerId): THREE.Vector3 | null {
+    // 1. ネイルが装着されていればそのアンカー位置
+    const attachedPos = this.nailAttacher.getFingerTipWorldPosition(fingerId);
+    if (attachedPos) return attachedPos;
+
+    // 2. ネイル未装着時はVRMのDistalボーン位置
+    const vrm = this.vrmLoader.currentVRM;
+    if (!vrm) return null;
+    const def = FINGER_DEFINITIONS[fingerId];
+    const boneNode = vrm.humanoid?.getNormalizedBoneNode(def.vrmBoneName as any)
+      || vrm.humanoid?.getRawBoneNode(def.vrmBoneName as any);
+    if (boneNode) {
+      boneNode.updateWorldMatrix(true, false);
+      const pos = new THREE.Vector3();
+      boneNode.getWorldPosition(pos);
+      return pos;
+    }
+    return null;
   }
 
   public setPose(pose: 'tpose' | 'nail') {
@@ -443,21 +488,29 @@ export default class ThreeCanvas extends Vue {
     // ポーズ変更に合わせてカメラターゲットを新ボーン位置に追従
     this.$nextTick(() => {
       if (this.sceneManager) {
-        this.sceneManager.updateCamera();
+        if (this.currentFocus === 'fingertip') {
+          this.focusFinger();
+        } else {
+          this.sceneManager.updateCamera();
+        }
       }
     });
   }
 
   public changeFocus(focus: FocusTarget) {
     this.currentFocus = focus;
-    if (this.sceneManager) {
+    if (focus === 'fingertip') {
+      this.focusFinger();
+    } else if (this.sceneManager) {
       this.sceneManager.updateCamera(focus, this.currentAngle);
     }
   }
 
   public changeAngle(angle: ViewAngle) {
     this.currentAngle = angle;
-    if (this.sceneManager) {
+    if (this.currentFocus === 'fingertip') {
+      this.focusFinger();
+    } else if (this.sceneManager) {
       this.sceneManager.updateCamera(this.currentFocus, angle);
     }
   }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { VRM } from '@pixiv/three-vrm';
 
-export type FocusTarget = 'hands' | 'leftHand' | 'rightHand' | 'upper' | 'full';
+export type FocusTarget = 'fingertip' | 'hands' | 'leftHand' | 'rightHand' | 'upper' | 'full';
 export type ViewAngle = 'normal' | 'top';
 export type CameraPreset = FocusTarget | 'top'; // 互換用
 
@@ -20,7 +20,7 @@ export class SceneManager {
   private updateCallbacks: Array<(delta: number) => void> = [];
 
   public currentVRM: VRM | null = null;
-  public currentFocus: FocusTarget = 'upper';
+  public currentFocus: FocusTarget = 'hands';
   public currentAngle: ViewAngle = 'normal';
 
   constructor(container: HTMLElement) {
@@ -217,6 +217,20 @@ export class SceneManager {
         }
         break;
       }
+      case 'fingertip': {
+        const targetPos = this.controls.target;
+        const distance = 0.13;
+        if (isTop) {
+          this.camera.position.set(targetPos.x, targetPos.y + distance, targetPos.z + 0.001);
+        } else {
+          this.camera.position.set(
+            targetPos.x,
+            targetPos.y + distance * 0.35,
+            targetPos.z + distance * 0.92
+          );
+        }
+        break;
+      }
     }
 
     this.controls.update();
@@ -236,7 +250,8 @@ export class SceneManager {
   /**
    * 指定したワールド座標（指先など）へカメラターゲットと位置をズームフォーカス
    */
-  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.16): void {
+  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.13): void {
+    this.currentFocus = 'fingertip';
     this.controls.target.copy(targetPosition);
     const isTop = this.currentAngle === 'top';
     if (isTop) {
