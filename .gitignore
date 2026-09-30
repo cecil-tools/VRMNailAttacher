@@ -47,12 +47,18 @@ coverage/
 
 # Firebase
 .firebase/
+app/.firebase/
 firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
+skills-lock.json
+.claude/
 
 # Cache & Temporary
 .cache/
 .temp/
 tmp/
 .eslintcache
+
+# MDollnail は 仮実装用なのでコミット対象にしない
+MDollnail/

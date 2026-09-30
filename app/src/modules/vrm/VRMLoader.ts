@@ -14,6 +14,7 @@ export interface VRMModelMeta {
 export class VRMLoader {
   private loader: GLTFLoader;
   public currentVRM: VRM | null = null;
+  public originalRawBuffer: ArrayBuffer | null = null;
   private currentObjectUrl: string | null = null;
 
   constructor() {
@@ -28,10 +29,45 @@ export class VRMLoader {
     url: string,
     onProgress?: (progress: number) => void
   ): Promise<VRM> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`VRMファイルの取得に失敗しました: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    this.originalRawBuffer = arrayBuffer;
+    return this.parseArrayBuffer(arrayBuffer, onProgress);
+  }
+
+  /**
+   * File オブジェクトから VRM を読み込む
+   */
+  public async loadFromFile(
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<VRM> {
+    if (this.currentObjectUrl) {
+      URL.revokeObjectURL(this.currentObjectUrl);
+      this.currentObjectUrl = null;
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    this.originalRawBuffer = arrayBuffer;
+    return this.parseArrayBuffer(arrayBuffer, onProgress);
+  }
+
+  /**
+   * ArrayBuffer から VRM をパース
+   */
+  public async parseArrayBuffer(
+    buffer: ArrayBuffer,
+    onProgress?: (progress: number) => void
+  ): Promise<VRM> {
     return new Promise((resolve, reject) => {
-      this.loader.load(
-        url,
+      if (onProgress) onProgress(50);
+      this.loader.parse(
+        buffer,
+        '',
         (gltf) => {
+          if (onProgress) onProgress(100);
           const vrm = gltf.userData.vrm as VRM;
           if (!vrm) {
             reject(new Error('VRM データの読み込みに失敗しました。'));
@@ -56,32 +92,11 @@ export class VRMLoader {
           this.currentVRM = vrm;
           resolve(vrm);
         },
-        (progress) => {
-          if (onProgress && progress.total > 0) {
-            onProgress(Math.round((progress.loaded / progress.total) * 100));
-          }
-        },
         (error) => {
           reject(error);
         }
       );
     });
-  }
-
-  /**
-   * File オブジェクトから VRM を読み込む
-   */
-  public async loadFromFile(
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<VRM> {
-    if (this.currentObjectUrl) {
-      URL.revokeObjectURL(this.currentObjectUrl);
-      this.currentObjectUrl = null;
-    }
-    const url = URL.createObjectURL(file);
-    this.currentObjectUrl = url;
-    return this.loadFromUrl(url, onProgress);
   }
 
   /**
@@ -206,5 +221,6 @@ export class VRMLoader {
       URL.revokeObjectURL(this.currentObjectUrl);
       this.currentObjectUrl = null;
     }
+    this.originalRawBuffer = null;
   }
 }

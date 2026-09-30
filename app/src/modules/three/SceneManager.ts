@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { VRM } from '@pixiv/three-vrm';
 
-export type FocusTarget = 'hands' | 'leftHand' | 'rightHand' | 'upper' | 'full';
+export type FocusTarget = 'fingertip' | 'hands' | 'leftHand' | 'rightHand' | 'upper' | 'full';
 export type ViewAngle = 'normal' | 'top';
 export type CameraPreset = FocusTarget | 'top'; // 互換用
 
@@ -20,7 +20,7 @@ export class SceneManager {
   private updateCallbacks: Array<(delta: number) => void> = [];
 
   public currentVRM: VRM | null = null;
-  public currentFocus: FocusTarget = 'upper';
+  public currentFocus: FocusTarget = 'hands';
   public currentAngle: ViewAngle = 'normal';
 
   constructor(container: HTMLElement) {
@@ -33,7 +33,7 @@ export class SceneManager {
 
     // 2. Camera
     const aspect = container.clientWidth / (container.clientHeight || 1);
-    this.camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 50.0);
+    this.camera = new THREE.PerspectiveCamera(40, aspect, 0.005, 50.0);
     this.camera.position.set(0, 1.25, 1.6);
 
     // 3. Renderer
@@ -52,7 +52,7 @@ export class SceneManager {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.target.set(0, 1.15, 0);
-    this.controls.minDistance = 0.05;
+    this.controls.minDistance = 0.01;
     this.controls.maxDistance = 15.0;
     this.controls.maxPolarAngle = Math.PI / 2 + 0.2;
 
@@ -217,6 +217,20 @@ export class SceneManager {
         }
         break;
       }
+      case 'fingertip': {
+        const targetPos = this.controls.target;
+        const distance = 0.13;
+        if (isTop) {
+          this.camera.position.set(targetPos.x, targetPos.y + distance, targetPos.z + 0.001);
+        } else {
+          this.camera.position.set(
+            targetPos.x,
+            targetPos.y + distance * 0.35,
+            targetPos.z + distance * 0.92
+          );
+        }
+        break;
+      }
     }
 
     this.controls.update();
@@ -231,6 +245,25 @@ export class SceneManager {
     } else {
       this.updateCamera(preset, this.currentAngle);
     }
+  }
+
+  /**
+   * 指定したワールド座標（指先など）へカメラターゲットと位置をズームフォーカス
+   */
+  public focusOnPoint(targetPosition: THREE.Vector3, distance = 0.13): void {
+    this.currentFocus = 'fingertip';
+    this.controls.target.copy(targetPosition);
+    const isTop = this.currentAngle === 'top';
+    if (isTop) {
+      this.camera.position.set(targetPosition.x, targetPosition.y + distance, targetPosition.z + 0.001);
+    } else {
+      this.camera.position.set(
+        targetPosition.x,
+        targetPosition.y + distance * 0.35,
+        targetPosition.z + distance * 0.92
+      );
+    }
+    this.controls.update();
   }
 
   public toggleGrid(visible?: boolean): boolean {

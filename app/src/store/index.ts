@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
+import { nailModule, NailState } from './modules/nail';
 
 Vue.use(Vuex);
 
@@ -20,6 +21,7 @@ export interface RootState {
   presetModels: PresetModel[];
   cameraPreset: 'full' | 'upper' | 'hands' | 'leftHand' | 'rightHand' | 'top';
   showGrid: boolean;
+  nail?: NailState;
 }
 
 export default new Vuex.Store<RootState>({
@@ -33,24 +35,6 @@ export default new Vuex.Store<RootState>({
     showGrid: true,
     presetModels: [
       {
-        id: 'vrm-1.0-aki',
-        name: 'Aki (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/aki.vrm',
-        version: '1.0'
-      },
-      {
-        id: 'vrm-1.0-jitome',
-        name: 'Jitome (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/jitome.vrm',
-        version: '1.0'
-      },
-      {
-        id: 'vrm-1.0-pee',
-        name: 'Pee (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/pee.vrm',
-        version: '1.0'
-      },
-      {
         id: 'vrm-0.x-default',
         name: 'Default (VRM 0.x)',
         path: process.env.BASE_URL + 'models/vrm/0.x/default.vrm',
@@ -61,6 +45,12 @@ export default new Vuex.Store<RootState>({
         name: 'Jitome (VRM 0.x)',
         path: process.env.BASE_URL + 'models/vrm/0.x/jitome.vrm',
         version: '0.x'
+      },
+      {
+        id: 'vrm-1.0-jitome',
+        name: 'Jitome (VRM 1.0)',
+        path: process.env.BASE_URL + 'models/vrm/1.0/jitome.vrm',
+        version: '1.0'
       }
     ]
   },
@@ -90,5 +80,7 @@ export default new Vuex.Store<RootState>({
     }
   },
   actions: {},
-  modules: {}
+  modules: {
+    nail: nailModule
+  }
 });
