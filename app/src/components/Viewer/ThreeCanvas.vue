@@ -158,6 +158,7 @@ import {
   TextureApplyScope,
   CustomTextureItem
 } from '@/modules/nail/types';
+import { VRMExporter, VRMExportOptions } from '@/modules/vrm/VRMExporter';
 
 @Component
 export default class ThreeCanvas extends Vue {
@@ -617,6 +618,58 @@ export default class ThreeCanvas extends Vue {
   public getCurrentVRM(): VRM | null {
     return this.vrmLoader.currentVRM;
   }
+
+  public getAttachedNailCount(): number {
+    return this.nailAttacher.getAllAttached().size;
+  }
+
+  /**
+   * 現在のVRMアバターとネイルを統合したVRMファイルをエクスポート
+   */
+  public async exportVRM(options?: VRMExportOptions): Promise<Blob> {
+    const vrm = this.vrmLoader.currentVRM;
+    if (!vrm) {
+      throw new Error('VRMモデルが読み込まれていません。');
+    }
+
+    const rawBuffer = this.vrmLoader.originalRawBuffer;
+    if (!rawBuffer) {
+      throw new Error('元モデルのバイナリバッファが見つかりません。');
+    }
+
+    // エクスポート計算時は一時的にTポーズにしてボーン基準の相対座標を正確に計算
+    const previousPose = this.currentPose;
+    if (previousPose !== 'tpose') {
+      this.vrmLoader.applyTPose(vrm);
+      vrm.scene.updateMatrixWorld(true);
+    }
+
+    try {
+      const attachedNails = this.nailAttacher.getAllAttached();
+      const meta = this.$store.state.currentMeta;
+      const exportOptions: VRMExportOptions = {
+        avatarTitle: options?.avatarTitle || meta?.title,
+        avatarAuthors: options?.avatarAuthors || meta?.authors,
+        avatarVersion: options?.avatarVersion || meta?.version,
+      };
+
+      const exportedBlob = await VRMExporter.exportVRM(
+        rawBuffer,
+        vrm,
+        attachedNails,
+        exportOptions
+      );
+
+      return exportedBlob;
+    } finally {
+      // ポーズを元に戻す
+      if (previousPose === 'nail') {
+        this.vrmLoader.applyNailInspectionPose(vrm);
+        vrm.scene.updateMatrixWorld(true);
+      }
+    }
+  }
+
 
   private cleanup() {
     this.nailAttacher.detachAll();

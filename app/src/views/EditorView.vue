@@ -11,7 +11,7 @@
         <button class="btn btn--secondary" @click="showAboutModal = true">
           <span>ヘルプ</span>
         </button>
-        <button class="btn btn--primary" :disabled="!hasModel">
+        <button class="btn btn--primary" :disabled="!hasModel" @click="openExportModal">
           <span>VRM エクスポート</span>
         </button>
       </div>
@@ -167,7 +167,7 @@
                 <span class="help-step-item__num">1</span>
                 <div class="help-step-item__body">
                   <strong>アバターを読み込む</strong>
-                  <p>右上の「ローカル VRM を開く」またはドラッグ＆ドロップでモデルを読み込みます。まずは試したい場合、プリセットモデル（Aki 等）をクリックするだけで即座に開始できます。</p>
+                  <p>右上の「ローカル VRM を開く」またはドラッグ＆ドロップでモデルを読み込みます。まずは試したい場合、プリセットモデルをクリックするだけで即座に開始できます。</p>
                 </div>
               </div>
               <div class="help-step-item">
@@ -315,6 +315,20 @@
         </div>
       </div>
     </div>
+
+    <!-- VRM Export Modal -->
+    <ExportModal
+      :visible="showExportModal"
+      :default-model-name="currentModelName || ''"
+      :default-title="currentMeta ? currentMeta.title : ''"
+      :default-authors="currentMeta ? currentMeta.authors : ''"
+      :vrm-version="currentMeta ? currentMeta.vrmFormatVersion : '0.x'"
+      :attached-count="attachedNailCount"
+      :is-exporting="isExporting"
+      :error-message="exportErrorMessage"
+      @close="closeExportModal"
+      @export="onExecuteExport"
+    />
   </div>
 </template>
 
@@ -322,6 +336,7 @@
 import { Component, Vue, Ref } from 'vue-property-decorator';
 import ThreeCanvas from '@/components/Viewer/ThreeCanvas.vue';
 import NailControlPanel from '@/components/Sidebar/NailControlPanel.vue';
+import ExportModal, { ExportFormPayload } from '@/components/Modal/ExportModal.vue';
 import { PresetModel } from '@/store';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
 import { FingerId, NailTransform } from '@/modules/nail/types';
@@ -329,7 +344,8 @@ import { FingerId, NailTransform } from '@/modules/nail/types';
 @Component({
   components: {
     ThreeCanvas,
-    NailControlPanel
+    NailControlPanel,
+    ExportModal
   }
 })
 export default class EditorView extends Vue {
@@ -356,7 +372,7 @@ export default class EditorView extends Vue {
   }
 
   mounted() {
-    // 初期表示時に最初のプリセットモデル（Aki）を自動読み込み
+    // 初期表示時に最初のプリセットモデルを自動読み込み
     this.$nextTick(() => {
       if (this.presetModels.length > 0 && !this.hasModel) {
         this.loadPreset(this.presetModels[0]);
@@ -459,6 +475,56 @@ export default class EditorView extends Vue {
   private onMorphReset(fingerId: FingerId) {
     if (this.threeCanvas) {
       this.threeCanvas.updateNailMorph({ fingerId });
+    }
+  }
+
+  // VRM Export
+  private showExportModal = false;
+  private isExporting = false;
+  private exportErrorMessage = '';
+
+  get attachedNailCount(): number {
+    return this.threeCanvas ? this.threeCanvas.getAttachedNailCount() : 0;
+  }
+
+  private openExportModal(): void {
+    this.exportErrorMessage = '';
+    this.showExportModal = true;
+  }
+
+  private closeExportModal(): void {
+    if (this.isExporting) return;
+    this.showExportModal = false;
+    this.exportErrorMessage = '';
+  }
+
+  private async onExecuteExport(payload: ExportFormPayload): Promise<void> {
+    if (!this.threeCanvas) return;
+    this.isExporting = true;
+    this.exportErrorMessage = '';
+
+    try {
+      const blob = await this.threeCanvas.exportVRM({
+        avatarTitle: payload.avatarTitle,
+        avatarAuthors: payload.avatarAuthors,
+      });
+
+      // ブラウザダウンロード
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = payload.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      this.isExporting = false;
+      this.showExportModal = false;
+    } catch (err: any) {
+      console.error('VRM export error:', err);
+      this.exportErrorMessage = err.message || 'エクスポートに失敗しました。';
+      this.isExporting = false;
     }
   }
 }

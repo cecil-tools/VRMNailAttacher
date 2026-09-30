@@ -230,6 +230,10 @@ export class NailAttacher {
     this.currentVRM = null;
   }
 
+  public getAllAttached(): Map<FingerId, AttachedFingerNail> {
+    return this.attachedMap;
+  }
+
   public getAttached(fingerId: FingerId): AttachedFingerNail | undefined {
     return this.attachedMap.get(fingerId);
   }
