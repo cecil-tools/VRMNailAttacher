@@ -6,34 +6,10 @@
         <span class="control-group__title">ネイルデザイン (テクスチャ)</span>
       </div>
 
-      <!-- 適用範囲セレクター -->
-      <div class="scope-selector">
-        <div class="scope-tabs">
-          <button
-            type="button"
-            class="scope-tab"
-            :class="{ 'scope-tab--active': currentScope === 'all' }"
-            @click="setScope('all')"
-          >
-            <span>全指一括 (10本)</span>
-          </button>
-          <button
-            type="button"
-            class="scope-tab"
-            :class="{ 'scope-tab--active': currentScope === 'single' }"
-            @click="setScope('single')"
-          >
-            <span>選択中の指のみ</span>
-          </button>
-        </div>
-
-        <div v-if="currentScope === 'single'" class="scope-hint">
-          <span class="scope-hint__icon">🎯</span>
-          <span class="scope-hint__text">
-            対象: <strong>{{ targetFingerLabel }}</strong>
-            <span v-if="isSymmetrySync" class="scope-hint__badge">左右同期ON</span>
-          </span>
-        </div>
+      <!-- 全指共通デザイン（マテリアル統合）案内バッジ -->
+      <div class="scope-info-badge">
+        <span class="scope-info-badge__icon">💅</span>
+        <span class="scope-info-badge__text">全指共通デザイン（マテリアル1つに統合）</span>
       </div>
 
       <!-- プリセットテクスチャ一覧 -->
@@ -258,12 +234,7 @@ export default class TextureControl extends Vue {
   }
 
   get activeTextureId(): string | null {
-    if (this.currentScope === 'all') {
-      return this.$store.state.nail?.selectedTextureId || 'cheek';
-    } else {
-      const ft = this.$store.state.nail?.fingerTextures;
-      return (ft && ft[this.targetFingerId]) || this.$store.state.nail?.selectedTextureId || 'cheek';
-    }
+    return this.$store.state.nail?.selectedTextureId || 'cheek';
   }
 
   public getPresetTextureUrl(relativeFileName: string): string {
@@ -418,73 +389,24 @@ export default class TextureControl extends Vue {
   }
 }
 
-/* スコープ切り替えセレクター */
-.scope-selector {
-  margin-bottom: $space-sm;
-}
-
-.scope-tabs {
-  display: flex;
-  background: $bg-tertiary;
-  padding: 3px;
-  border-radius: $radius-sm;
-  gap: 3px;
-}
-
-.scope-tab {
-  flex: 1;
-  padding: 5px 8px;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  font-size: 11px;
-  color: $text-muted;
-  cursor: pointer;
-  transition: all $transition-fast;
-  font-weight: 500;
-  text-align: center;
-
-  &:hover {
-    color: $text-primary;
-  }
-
-  &--active {
-    background: $bg-elevated;
-    color: $accent-pink;
-    font-weight: 600;
-    box-shadow: $shadow-sm;
-  }
-}
-
-.scope-hint {
+/* 全指共通適用案内バッジ */
+.scope-info-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 4px 8px;
-  background: rgba(255, 101, 132, 0.08);
-  border: 1px solid rgba(255, 101, 132, 0.2);
+  gap: $space-xs;
+  padding: 6px $space-sm;
+  background: rgba($accent-pink, 0.08);
+  border: 1px solid rgba($accent-pink, 0.2);
   border-radius: $radius-sm;
-  font-size: 11px;
-  color: $text-secondary;
+  margin-bottom: $space-sm;
 
   &__icon {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   &__text {
-    flex: 1;
-    strong {
-      color: $text-primary;
-    }
-  }
-
-  &__badge {
-    margin-left: 6px;
-    padding: 1px 6px;
-    background: rgba(255, 101, 132, 0.2);
-    border-radius: 4px;
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 500;
     color: $accent-pink;
   }
 }
