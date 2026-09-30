@@ -7,14 +7,18 @@
 
       <div class="texture-grid">
         <button
-          v-for="tex in textures"
+          v-for="tex in formattedTextures"
           :key="tex.id"
           class="texture-card"
           :class="{ 'texture-card--active': currentTextureId === tex.id }"
+          :title="tex.fullName"
           @click="selectTexture(tex.id)"
         >
           <span class="texture-card__icon">💅</span>
-          <span class="texture-card__label">{{ tex.label }}</span>
+          <div class="texture-card__text">
+            <span class="texture-card__name">{{ tex.jpName }}</span>
+            <span v-if="tex.enName" class="texture-card__sub">{{ tex.enName }}</span>
+          </div>
         </button>
       </div>
     </div>
@@ -25,10 +29,31 @@
 import { Component, Vue } from 'vue-property-decorator';
 import { RYUKI_PRESET, NailTextureOption } from '@/modules/nail/types';
 
+interface FormattedTexture {
+  id: string;
+  fullName: string;
+  jpName: string;
+  enName: string;
+}
+
 @Component
 export default class TextureControl extends Vue {
   get textures(): NailTextureOption[] {
     return RYUKI_PRESET.textures;
+  }
+
+  get formattedTextures(): FormattedTexture[] {
+    return this.textures.map((tex) => {
+      const match = tex.label.match(/^([^(]+)(?:\((.+)\))?$/);
+      const jpName = match ? match[1].trim() : tex.label;
+      const enName = match && match[2] ? match[2].trim() : '';
+      return {
+        id: tex.id,
+        fullName: tex.label,
+        jpName,
+        enName
+      };
+    });
   }
 
   get currentTextureId(): string | null {
@@ -43,66 +68,99 @@ export default class TextureControl extends Vue {
 
 <style lang="scss" scoped>
 .texture-control {
-  margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .control-group {
-  background: var(--color-surface, #23272e);
-  border: 1px solid var(--color-border, #333842);
-  border-radius: 8px;
-  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  background: $bg-secondary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  padding: $space-sm $space-md;
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: $space-xs;
   }
 
   &__title {
-    font-size: 12px;
+    font-size: $font-size-xs;
     font-weight: 600;
-    color: var(--color-text-secondary, #9da5b4);
+    color: $text-secondary;
   }
 }
 
 .texture-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .texture-card {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 10px;
-  background: var(--color-bg, #1e1e24);
-  border: 1px solid var(--color-border, #3e4451);
-  border-radius: 6px;
-  color: var(--color-text, #abb2bf);
-  font-size: 11px;
+  padding: 6px 8px;
+  background: $bg-tertiary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-sm;
+  color: $text-secondary;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all $transition-fast;
   text-align: left;
+  overflow: hidden;
 
   &:hover {
-    border-color: var(--color-primary, #61afef);
-    background: rgba(97, 175, 239, 0.08);
+    background: $bg-elevated;
+    border-color: $border-medium;
+    color: $text-primary;
   }
 
   &--active {
-    border-color: var(--color-primary, #61afef);
-    background: rgba(97, 175, 239, 0.16);
-    color: #fff;
+    background: rgba(255, 101, 132, 0.15);
+    border-color: $accent-pink;
+    color: $accent-pink;
     font-weight: 600;
+    box-shadow: $glow-pink;
+
+    .texture-card__sub {
+      color: rgba(255, 101, 132, 0.8);
+    }
   }
 
   &__icon {
-    font-size: 14px;
+    font-size: 13px;
+    flex-shrink: 0;
   }
 
-  &__label {
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    line-height: 1.25;
+  }
+
+  &__name {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__sub {
+    font-size: 9px;
+    color: $text-muted;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
