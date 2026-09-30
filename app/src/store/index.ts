@@ -35,21 +35,9 @@ export default new Vuex.Store<RootState>({
     showGrid: true,
     presetModels: [
       {
-        id: 'vrm-1.0-aki',
-        name: 'Aki (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/aki.vrm',
-        version: '1.0'
-      },
-      {
         id: 'vrm-1.0-jitome',
         name: 'Jitome (VRM 1.0)',
         path: process.env.BASE_URL + 'models/vrm/1.0/jitome.vrm',
-        version: '1.0'
-      },
-      {
-        id: 'vrm-1.0-pee',
-        name: 'Pee (VRM 1.0)',
-        path: process.env.BASE_URL + 'models/vrm/1.0/pee.vrm',
         version: '1.0'
       },
       {
