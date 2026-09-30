@@ -76,9 +76,14 @@ export class NailModelLoader {
         }
         // マテリアルをクローンしてテクスチャや色設定が干渉しないようにする
         if (Array.isArray(mesh.material)) {
-          mesh.material = mesh.material.map((m) => m.clone());
+          mesh.material = mesh.material.map((m) => {
+            const cloned = m.clone();
+            this.normalizeNailMaterial(cloned);
+            return cloned;
+          });
         } else if (mesh.material) {
           mesh.material = mesh.material.clone();
+          this.normalizeNailMaterial(mesh.material);
         }
         // 影の設定
         mesh.castShadow = true;
@@ -93,6 +98,29 @@ export class NailModelLoader {
       morphTargetDictionary,
       morphTargetNames
     };
+  }
+
+  /**
+   * ネイルチップ用マテリアルの標準化
+   * 非金属（metalness: 0）、滑らかなトップコート光沢（roughness: 0.2）、純白ベースカラーを設定
+   */
+  private normalizeNailMaterial(material: THREE.Material): void {
+    if ('metalness' in material) {
+      (material as THREE.MeshStandardMaterial).metalness = 0.0;
+    }
+    if ('roughness' in material) {
+      (material as THREE.MeshStandardMaterial).roughness = 0.2;
+    }
+    if ('color' in material) {
+      (material as THREE.MeshStandardMaterial).color.set(0xffffff);
+    }
+    if ('specularIntensity' in material) {
+      (material as any).specularIntensity = 1.0;
+    }
+    if ('specularColor' in material) {
+      (material as any).specularColor.set(0xffffff);
+    }
+    material.needsUpdate = true;
   }
 
   /**
@@ -124,7 +152,7 @@ export class NailModelLoader {
     for (const mat of materials) {
       if ('map' in mat) {
         (mat as THREE.MeshStandardMaterial).map = texture;
-        mat.needsUpdate = true;
+        this.normalizeNailMaterial(mat);
       }
     }
   }
