@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "NODE_OPTIONS='--openssl-legacy-provider' vue-cli-service serve",
     "build": "NODE_OPTIONS='--openssl-legacy-provider' vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "npm run build && firebase deploy"
   },
   "dependencies": {
     "@pixiv/three-vrm": "^2.0.8",
