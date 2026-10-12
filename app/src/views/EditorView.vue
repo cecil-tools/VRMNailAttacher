@@ -45,7 +45,11 @@
         class="editor-viewport"
         :class="{ 'editor-viewport--fullscreen': isMobileFullscreen3D }"
       >
-        <ThreeCanvas ref="threeCanvas" @vrm-loaded="onVrmLoaded" />
+        <ThreeCanvas
+          ref="threeCanvas"
+          @vrm-loaded="onVrmLoaded"
+          @capture="onCanvasCapture"
+        />
 
         <!-- Mobile View Mode Toggle Button -->
         <button
@@ -364,6 +368,17 @@
       @close="closeExportModal"
       @export="onExecuteExport"
     />
+
+    <!-- Photo Capture Modal -->
+    <CaptureModal
+      :visible="showCaptureModal"
+      :image-data-url="captureDataUrl"
+      :image-blob="captureBlob"
+      :avatar-name="currentModelName || 'avatar'"
+      @close="closeCaptureModal"
+      @retake="onRetakeCapture"
+      @toggle-transparent="onToggleCaptureTransparent"
+    />
   </div>
 </template>
 
@@ -372,6 +387,7 @@ import { Component, Vue, Ref, Watch } from 'vue-property-decorator';
 import ThreeCanvas from '@/components/Viewer/ThreeCanvas.vue';
 import NailControlPanel from '@/components/Sidebar/NailControlPanel.vue';
 import ExportModal, { ExportFormPayload } from '@/components/Modal/ExportModal.vue';
+import CaptureModal from '@/components/Modal/CaptureModal.vue';
 import { PresetModel } from '@/store';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
 import { FingerId, NailTransform, NailMaterialType } from '@/modules/nail/types';
@@ -381,7 +397,8 @@ import { SUPPORTED_LOCALES, setAppLocale, SupportedLocale } from '@/plugins/i18n
   components: {
     ThreeCanvas,
     NailControlPanel,
-    ExportModal
+    ExportModal,
+    CaptureModal
   }
 })
 export default class EditorView extends Vue {
@@ -389,6 +406,10 @@ export default class EditorView extends Vue {
   @Ref('fileInput') readonly fileInput!: HTMLInputElement;
 
   private showAboutModal = false;
+  private showCaptureModal = false;
+  private captureDataUrl = '';
+  private captureBlob: Blob | null = null;
+  private captureTransparent = false;
   private activeHelpTab: 'guide' | 'camera' | 'fitting' | 'texture' = 'guide';
   private isMobileFullscreen3D = false;
 
@@ -607,6 +628,40 @@ export default class EditorView extends Vue {
       console.error('VRM export error:', err);
       this.exportErrorMessage = err.message || 'エクスポートに失敗しました。';
       this.isExporting = false;
+    }
+  }
+
+  // Photo Capture
+  private onCanvasCapture({ dataUrl, blob }: { dataUrl: string; blob: Blob }): void {
+    this.captureDataUrl = dataUrl;
+    this.captureBlob = blob;
+    this.showCaptureModal = true;
+  }
+
+  private closeCaptureModal(): void {
+    this.showCaptureModal = false;
+  }
+
+  private async onRetakeCapture(): Promise<void> {
+    const canvas = this.threeCanvas as any;
+    if (canvas && canvas.capture) {
+      const res = await canvas.capture(this.captureTransparent);
+      if (res) {
+        this.captureDataUrl = res.dataUrl;
+        this.captureBlob = res.blob;
+      }
+    }
+  }
+
+  private async onToggleCaptureTransparent(transparent: boolean): Promise<void> {
+    this.captureTransparent = transparent;
+    const canvas = this.threeCanvas as any;
+    if (canvas && canvas.capture) {
+      const res = await canvas.capture(transparent);
+      if (res) {
+        this.captureDataUrl = res.dataUrl;
+        this.captureBlob = res.blob;
+      }
     }
   }
 }
