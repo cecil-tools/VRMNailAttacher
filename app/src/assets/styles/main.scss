@@ -164,4 +164,19 @@ input[type='range'] {
       transform: scale(1.15);
     }
   }
+
+  @media (max-width: $breakpoint-mobile) {
+    height: 8px;
+    touch-action: pan-y;
+
+    &::-webkit-slider-thumb {
+      width: 22px;
+      height: 22px;
+    }
+
+    &::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+    }
+  }
 }

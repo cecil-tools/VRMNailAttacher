@@ -1009,12 +1009,27 @@ export default class ThreeCanvas extends Vue {
   gap: $space-sm;
   box-shadow: 0 6px 20px rgba(230, 140, 165, 0.22);
   z-index: 20;
+
+  @media (max-width: $breakpoint-mobile) {
+    bottom: $space-xs;
+    max-width: calc(100% - 16px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 8px;
+    gap: 4px;
+    border-radius: $radius-lg;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .toolbar-group {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .toolbar-divider {
@@ -1022,6 +1037,7 @@ export default class ThreeCanvas extends Vue {
   height: 16px;
   background-color: $border-subtle;
   margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .toolbar-btn {
@@ -1032,6 +1048,13 @@ export default class ThreeCanvas extends Vue {
   color: $text-secondary;
   background: transparent;
   transition: all $transition-fast;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
 
   &:hover {
     color: $accent-pink;

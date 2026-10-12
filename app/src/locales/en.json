@@ -52,7 +52,9 @@
     "resetCamera": "↺",
     "titleResetCamera": "Reset camera to default position",
     "grid": "🌐 Grid",
-    "titleGrid": "Toggle grid display"
+    "titleGrid": "Toggle grid display",
+    "toggleSettings": "⚙️ Open Settings",
+    "fullscreen3D": "⛶ Fullscreen 3D"
   },
   "nailPanel": {
     "title": "Nail Settings",

@@ -234,6 +234,16 @@ function capitalize(s: string): string {
   align-items: center;
   margin-top: $space-xs;
   padding: 0 2px;
+
+  @media (max-width: $breakpoint-mobile) {
+    gap: 8px;
+    align-items: center;
+
+    .btn-focus-tip {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+  }
 }
 
 .toggle-control {

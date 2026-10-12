@@ -52,7 +52,9 @@
     "resetCamera": "↺",
     "titleResetCamera": "カメラ視点を初期位置にリセット",
     "grid": "🌐 グリッド",
-    "titleGrid": "グリッド表示切り替え"
+    "titleGrid": "グリッド表示切り替え",
+    "toggleSettings": "⚙️ 設定を開く",
+    "fullscreen3D": "⛶ 3D全画面"
   },
   "nailPanel": {
     "title": "ネイルチップ設定",
