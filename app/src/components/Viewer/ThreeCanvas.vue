@@ -123,6 +123,69 @@
         >
           <span>{{ $t('viewport.poseOpenHand') }}</span>
         </button>
+        <div class="pose-picker-anchor">
+          <button
+            class="toolbar-btn toolbar-btn--pose-menu"
+            :class="{ 'toolbar-btn--active': isPhotoPoseActive }"
+            :title="$t('viewport.titlePosePhoto')"
+            @click="togglePoseMenu"
+          >
+            <span>{{ currentPoseButtonLabel }} ▾</span>
+          </button>
+
+          <!-- ポーズ選択パレット (ポップオーバー) -->
+          <div v-if="isPoseMenuOpen" class="pose-popover-backdrop" @click="closePoseMenu"></div>
+          <div v-if="isPoseMenuOpen" class="pose-popover" @click.stop>
+            <div class="pose-popover__header">
+              <div class="pose-popover__title">
+                <span>💅</span>
+                <span>{{ $t('poses.paletteTitle') }}</span>
+              </div>
+              <button type="button" class="pose-popover__close" @click="closePoseMenu">✕</button>
+            </div>
+
+            <!-- カテゴリ切り替えタブ -->
+            <div class="pose-popover__tabs">
+              <button
+                v-for="cat in categories"
+                :key="cat.id"
+                type="button"
+                class="pose-tab-btn"
+                :class="{ 'pose-tab-btn--active': selectedCategory === cat.id }"
+                @click="selectedCategory = cat.id"
+              >
+                {{ $t(cat.labelKey) }}
+              </button>
+            </div>
+
+            <!-- ポーズ一覧グリッド -->
+            <div class="pose-popover__grid">
+              <button
+                v-for="p in filteredPoseList"
+                :key="p.id"
+                type="button"
+                class="pose-item-card"
+                :class="{ 'pose-item-card--active': currentPose === p.id }"
+                @click="selectPose(p.id)"
+              >
+                <span class="pose-item-card__icon">{{ p.icon }}</span>
+                <span class="pose-item-card__name">{{ $t(p.labelKey) }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group">
+        <button
+          class="toolbar-btn toolbar-btn--camera"
+          :title="$t('viewport.titleCapture')"
+          @click="triggerCapture"
+        >
+          <span>📷 {{ $t('viewport.capture') }}</span>
+        </button>
       </div>
 
       <div class="toolbar-divider"></div>
@@ -160,6 +223,7 @@ import {
   NailMToonParams
 } from '@/modules/nail/types';
 import { VRMExporter, VRMExportOptions } from '@/modules/vrm/VRMExporter';
+import { VRMPoseManager, PoseType, POSE_LIST, PoseInfo, PoseCategory } from '@/modules/vrm/VRMPoseManager';
 
 @Component
 export default class ThreeCanvas extends Vue {
@@ -167,6 +231,7 @@ export default class ThreeCanvas extends Vue {
 
   private sceneManager: SceneManager | null = null;
   private vrmLoader: VRMLoader = new VRMLoader();
+  private poseManager: VRMPoseManager = new VRMPoseManager();
   private nailModelLoader: NailModelLoader = new NailModelLoader();
   private nailAttacher: NailAttacher = new NailAttacher();
   private loadedNailAssets: Map<FingerId, LoadedNailAsset> | null = null;
@@ -174,8 +239,53 @@ export default class ThreeCanvas extends Vue {
   private isDragging = false;
   private currentFocus: FocusTarget = 'leftHand';
   private currentAngle: ViewAngle = 'top';
-  private currentPose: 'tpose' | 'nail' = 'tpose';
+  private currentPose: PoseType = 'tpose';
   private gridVisible = true;
+  private isPoseMenuOpen = false;
+  private selectedCategory: PoseCategory = 'all';
+  private poseList: PoseInfo[] = POSE_LIST;
+
+  get isPhotoPoseActive(): boolean {
+    return this.currentPose !== 'tpose' && this.currentPose !== 'nail';
+  }
+
+  get currentPoseButtonLabel(): string {
+    const pose = this.poseList.find((p) => p.id === this.currentPose);
+    if (pose && this.isPhotoPoseActive) {
+      return `${pose.icon} ${this.$t(pose.labelKey)}`;
+    }
+    return `💅 ${this.$t('poses.title')}`;
+  }
+
+  get categories(): Array<{ id: PoseCategory; labelKey: string }> {
+    return [
+      { id: 'all', labelKey: 'poses.catAll' },
+      { id: 'salon', labelKey: 'poses.catSalon' },
+      { id: 'face', labelKey: 'poses.catFace' },
+      { id: 'cute', labelKey: 'poses.catCute' },
+      { id: 'basic', labelKey: 'poses.catBasic' },
+    ];
+  }
+
+  get filteredPoseList(): PoseInfo[] {
+    if (this.selectedCategory === 'all') {
+      return this.poseList;
+    }
+    return this.poseList.filter((p) => p.category === this.selectedCategory);
+  }
+
+  public togglePoseMenu() {
+    this.isPoseMenuOpen = !this.isPoseMenuOpen;
+  }
+
+  public closePoseMenu() {
+    this.isPoseMenuOpen = false;
+  }
+
+  public selectPose(poseId: PoseType) {
+    this.setPose(poseId);
+    this.closePoseMenu();
+  }
 
   get isLoading(): boolean {
     return this.$store.state.isLoading;
@@ -203,6 +313,7 @@ export default class ThreeCanvas extends Vue {
 
     // アニメーションループ内での VRM 更新コールバック
     this.sceneManager.onUpdate((delta) => {
+      this.poseManager.update(delta);
       if (this.vrmLoader.currentVRM) {
         this.vrmLoader.currentVRM.update(delta);
       }
@@ -711,21 +822,20 @@ export default class ThreeCanvas extends Vue {
     return null;
   }
 
-  public setPose(pose: 'tpose' | 'nail') {
+  public async setPose(pose: PoseType) {
     this.currentPose = pose;
     const vrm = this.vrmLoader.currentVRM;
     if (!vrm) return;
 
-    if (pose === 'tpose') {
-      this.vrmLoader.applyTPose(vrm);
-    } else {
-      this.vrmLoader.applyNailInspectionPose(vrm);
-    }
+    await this.poseManager.applyPose(vrm, pose);
 
     // ポーズ変更に合わせてカメラターゲットを新ボーン位置に追従
     this.$nextTick(() => {
       if (this.sceneManager) {
-        if (this.currentFocus === 'fingertip') {
+        const info = POSE_LIST.find((p) => p.id === pose);
+        if (info) {
+          this.sceneManager.focusOnHand(info.cameraFocus, vrm);
+        } else if (this.currentFocus === 'fingertip') {
           this.focusFinger();
         } else if (this.currentFocus === 'leftHand') {
           this.focusHand('left');
@@ -736,6 +846,22 @@ export default class ThreeCanvas extends Vue {
         }
       }
     });
+  }
+
+  public togglePhotoPose() {
+    this.togglePoseMenu();
+  }
+
+  public async capture(transparent = false): Promise<{ dataUrl: string; blob: Blob } | null> {
+    if (!this.sceneManager) return null;
+    return await this.sceneManager.captureScreenshot({ transparent });
+  }
+
+  public async triggerCapture() {
+    const result = await this.capture(false);
+    if (result) {
+      this.$emit('capture', result);
+    }
   }
 
   public changeFocus(focus: FocusTarget) {
@@ -1070,6 +1196,203 @@ export default class ThreeCanvas extends Vue {
       background: $accent-gradient-hover;
       color: #ffffff;
     }
+  }
+
+  &--camera {
+    background: rgba(255, 117, 151, 0.12);
+    color: $accent-pink;
+    font-weight: 700;
+
+    &:hover {
+      background: rgba(255, 117, 151, 0.22);
+      color: $accent-pink;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* Pose Popover */
+.pose-picker-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pose-popover-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99;
+}
+
+.pose-popover {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  max-width: 90vw;
+  max-height: 440px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(246, 173, 198, 0.5);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 12px 36px rgba(230, 140, 165, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+  animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 310px;
+    max-height: 380px;
+    padding: 10px;
+  }
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.pose-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.pose-popover__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.pose-popover__close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 13px;
+  color: $text-secondary;
+  background: rgba(0, 0, 0, 0.04);
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba(244, 114, 182, 0.15);
+    color: $accent-pink;
+  }
+}
+
+.pose-popover__tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(253, 242, 244, 0.7);
+  padding: 3px;
+  border-radius: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.pose-tab-btn {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-secondary;
+  border-radius: 8px;
+  background: transparent;
+  white-space: nowrap;
+  transition: all $transition-fast;
+  text-align: center;
+
+  &:hover {
+    color: $accent-pink;
+  }
+
+  &--active {
+    background: #ffffff;
+    color: $accent-pink;
+    box-shadow: 0 2px 6px rgba(230, 140, 165, 0.18);
+  }
+}
+
+.pose-popover__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 280px;
+  padding-right: 2px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(246, 173, 198, 0.4);
+    border-radius: 4px;
+  }
+}
+
+.pose-item-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(246, 173, 198, 0.25);
+  border-radius: 12px;
+  transition: all $transition-fast;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: #fff5f7;
+    border-color: rgba(244, 114, 182, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(244, 114, 182, 0.12);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.15) 0%, rgba(236, 72, 153, 0.25) 100%);
+    border-color: #ec4899;
+    font-weight: 700;
+    color: #be185d;
+    box-shadow: 0 3px 8px rgba(236, 72, 153, 0.2);
+  }
+
+  &__icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-primary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

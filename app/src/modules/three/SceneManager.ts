@@ -270,6 +270,197 @@ export class SceneManager {
     this.controls.update();
   }
 
+  /**
+   * ネイルフォト用に手元と爪全体（およびフェイス周り）が美しく中央に収まるようカメラを自動フォーカス
+   */
+  public focusOnHand(hand: 'right' | 'left' | 'both' | 'face' = 'right', vrm?: any): void {
+    if (!vrm || !vrm.humanoid) {
+      this.updateCamera(hand === 'left' ? 'leftHand' : 'rightHand', 'normal');
+      return;
+    }
+
+    // 最新のボーン姿勢行列を同期
+    if (vrm.scene) {
+      vrm.scene.updateMatrixWorld(true);
+    }
+
+    const getHandBounds = (side: 'right' | 'left') => {
+      const wristNode = vrm.humanoid.getNormalizedBoneNode(side === 'left' ? 'leftHand' : 'rightHand')
+        || vrm.humanoid.getRawBoneNode(side === 'left' ? 'leftHand' : 'rightHand');
+      if (!wristNode) return null;
+      wristNode.updateWorldMatrix(true, false);
+      const wristPos = new THREE.Vector3();
+      wristNode.getWorldPosition(wristPos);
+
+      const fingerBones = side === 'left' ? [
+        'leftThumbDistal',
+        'leftIndexDistal',
+        'leftMiddleDistal',
+        'leftRingDistal',
+        'leftLittleDistal'
+      ] : [
+        'rightThumbDistal',
+        'rightIndexDistal',
+        'rightMiddleDistal',
+        'rightRingDistal',
+        'rightLittleDistal'
+      ];
+
+      const box = new THREE.Box3();
+      box.expandByPoint(wristPos);
+
+      let foundFingers = false;
+      for (const boneName of fingerBones) {
+        const bone = vrm.humanoid.getNormalizedBoneNode(boneName as any)
+          || vrm.humanoid.getRawBoneNode(boneName as any);
+        if (bone) {
+          bone.updateWorldMatrix(true, false);
+          const p = new THREE.Vector3();
+          bone.getWorldPosition(p);
+          box.expandByPoint(p);
+          foundFingers = true;
+        }
+      }
+
+      if (foundFingers) {
+        // 末節骨(Distal)の先にある爪・指先（約2.5cm〜3cm）を考慮してバウンディングボックス上端を拡張
+        box.max.y += 0.03;
+      } else {
+        // フォールバック: 手首から上方12cm
+        box.expandByPoint(wristPos.clone().add(new THREE.Vector3(0, 0.12, 0)));
+      }
+
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      return { box, center };
+    };
+
+    if (hand === 'face') {
+      const rData = getHandBounds('right');
+      const lData = getHandBounds('left');
+      const combinedBox = new THREE.Box3();
+      if (rData) combinedBox.union(rData.box);
+      if (lData) combinedBox.union(lData.box);
+
+      const headNode = vrm.humanoid.getNormalizedBoneNode('head')
+        || vrm.humanoid.getRawBoneNode('head');
+      if (headNode) {
+        headNode.updateWorldMatrix(true, false);
+        const headPos = new THREE.Vector3();
+        headNode.getWorldPosition(headPos);
+        combinedBox.expandByPoint(headPos);
+        combinedBox.expandByPoint(new THREE.Vector3(headPos.x, headPos.y + 0.12, headPos.z));
+      }
+
+      if (!combinedBox.isEmpty()) {
+        const faceCenter = new THREE.Vector3();
+        combinedBox.getCenter(faceCenter);
+        this.controls.target.copy(faceCenter);
+
+        const height = combinedBox.max.y - combinedBox.min.y;
+        const width = combinedBox.max.x - combinedBox.min.x;
+        const distance = Math.max(0.60, Math.max(height * 2.1, width * 1.5));
+
+        this.camera.position.set(
+          faceCenter.x,
+          faceCenter.y + distance * 0.02,
+          faceCenter.z + distance * 0.999
+        );
+        this.controls.update();
+        return;
+      }
+    }
+
+    if (hand === 'both') {
+      const rData = getHandBounds('right');
+      const lData = getHandBounds('left');
+      if (rData && lData) {
+        const combinedBox = new THREE.Box3();
+        combinedBox.union(rData.box);
+        combinedBox.union(lData.box);
+
+        const bothCenter = new THREE.Vector3();
+        combinedBox.getCenter(bothCenter);
+        this.controls.target.copy(bothCenter);
+
+        const height = combinedBox.max.y - combinedBox.min.y;
+        const width = combinedBox.max.x - combinedBox.min.x;
+        // 両手の幅と高さが余裕を持って収まる距離（最小0.62m）
+        const distance = Math.max(0.62, Math.max(height * 2.4, width * 1.5));
+
+        this.camera.position.set(
+          bothCenter.x,
+          bothCenter.y + distance * 0.02,
+          bothCenter.z + distance * 0.999
+        );
+        this.controls.update();
+        return;
+      }
+    }
+
+    const handData = getHandBounds(hand === 'left' ? 'left' : 'right');
+    if (!handData) {
+      this.updateCamera(hand === 'left' ? 'leftHand' : 'rightHand', 'normal');
+      return;
+    }
+
+    const { center, box } = handData;
+    this.controls.target.copy(center);
+
+    // 手のサイズに応じた最適な撮影距離（手と爪が上下左右に十分な余白をもって美しく収まる距離）
+    const handHeight = box.max.y - box.min.y;
+    // FOV 40° において手（約20cm）がフレーム高さの約50〜55%を占める距離（上下に約20〜25%ずつの優雅なマージンを確保）
+    const distance = Math.max(0.48, handHeight * 2.3);
+
+    this.camera.position.set(
+      center.x,
+      center.y + distance * 0.02,
+      center.z + distance * 0.999
+    );
+    this.controls.update();
+  }
+
+  /**
+   * 画面キャプチャ撮影（スナップショット）を実行
+   * @param options.transparent true の場合は透過PNGとして背景を描画しない
+   * @param options.hideGrid true の場合はグリッドを一時的に非表示にして撮影
+   */
+  public async captureScreenshot(options: {
+    transparent?: boolean;
+    hideGrid?: boolean;
+  } = {}): Promise<{ dataUrl: string; blob: Blob }> {
+    const origBackground = this.scene.background;
+    const origGridVisible = this.gridHelper.visible;
+
+    try {
+      if (options.transparent) {
+        this.scene.background = null;
+      }
+      if (options.hideGrid !== false) {
+        this.gridHelper.visible = false;
+      }
+
+      // 撮影用に同期レンダリング
+      this.renderer.render(this.scene, this.camera);
+
+      // toBlob & toDataURL
+      const dataUrl = this.renderer.domElement.toDataURL('image/png');
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        this.renderer.domElement.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error('Failed to generate image blob'));
+        }, 'image/png');
+      });
+
+      return { dataUrl, blob };
+    } finally {
+      // 復元
+      this.scene.background = origBackground;
+      this.gridHelper.visible = origGridVisible;
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+
   public toggleGrid(visible?: boolean): boolean {
     if (visible !== undefined) {
       this.gridHelper.visible = visible;
