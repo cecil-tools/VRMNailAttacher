@@ -75,9 +75,14 @@ button {
   padding: 8px 18px;
   font-size: $font-size-sm;
   font-weight: 600;
+  line-height: 1.2;
   border-radius: $radius-full;
   transition: all $transition-fast;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
+  cursor: pointer;
 
   &--primary {
     background: $accent-gradient;
