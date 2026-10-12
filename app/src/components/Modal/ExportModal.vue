@@ -230,6 +230,12 @@ export default class ExportModal extends Vue {
   overflow: hidden;
   animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
+  @media (max-width: $breakpoint-mobile) {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+
   &__header {
     display: flex;
     justify-content: space-between;
@@ -319,6 +325,11 @@ export default class ExportModal extends Vue {
   border-radius: $radius-md;
   border: 1px solid $border-subtle;
 
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
   &__item {
     display: flex;
     flex-direction: column;
@@ -365,6 +376,11 @@ export default class ExportModal extends Vue {
 .form-row {
   display: flex;
   gap: $space-md;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    gap: $space-sm;
+  }
 }
 
 .form-label {

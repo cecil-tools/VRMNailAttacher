@@ -266,6 +266,14 @@ input[type='range'] {
   display: flex;
   gap: $space-sm;
   justify-content: flex-end;
+
+  @media (max-width: $breakpoint-mobile) {
+    .btn--sm {
+      flex: 1;
+      text-align: center;
+      padding: 8px 10px;
+    }
+  }
 }
 
 .btn--sm {

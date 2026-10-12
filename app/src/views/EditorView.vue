@@ -41,12 +41,25 @@
     <!-- Main Workspace -->
     <div class="editor-workspace">
       <!-- 3D Viewport Area -->
-      <main class="editor-viewport">
+      <main
+        class="editor-viewport"
+        :class="{ 'editor-viewport--fullscreen': isMobileFullscreen3D }"
+      >
         <ThreeCanvas ref="threeCanvas" @vrm-loaded="onVrmLoaded" />
+
+        <!-- Mobile View Mode Toggle Button -->
+        <button
+          type="button"
+          class="btn-mobile-view-toggle"
+          :title="isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D')"
+          @click="isMobileFullscreen3D = !isMobileFullscreen3D"
+        >
+          <span>{{ isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D') }}</span>
+        </button>
       </main>
 
       <!-- Sidebar Controls -->
-      <aside class="editor-sidebar">
+      <aside v-show="!isMobileFullscreen3D" class="editor-sidebar">
         <!-- Section 1: Avatar Load -->
         <div class="editor-sidebar__section">
           <div class="section-header">
@@ -377,6 +390,7 @@ export default class EditorView extends Vue {
 
   private showAboutModal = false;
   private activeHelpTab: 'guide' | 'camera' | 'fitting' | 'texture' = 'guide';
+  private isMobileFullscreen3D = false;
 
   get currentLocale(): string {
     return this.$i18n.locale;
@@ -619,6 +633,29 @@ export default class EditorView extends Vue {
   box-shadow: 0 2px 12px rgba(230, 140, 165, 0.08);
   z-index: 10;
 
+  @media (max-width: $breakpoint-mobile) {
+    height: 50px;
+    padding: 0 $space-sm;
+
+    &__subtitle,
+    &__tag {
+      display: none;
+    }
+
+    &__title {
+      font-size: 0.95rem;
+    }
+
+    &__actions {
+      gap: 6px;
+
+      .btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  }
+
   &__brand {
     display: flex;
     align-items: center;
@@ -698,6 +735,12 @@ export default class EditorView extends Vue {
   background-repeat: no-repeat;
   background-position: right 8px center;
 
+  @media (max-width: $breakpoint-mobile) {
+    padding: 5px 22px 5px 8px;
+    font-size: 11px;
+    background-position: right 6px center;
+  }
+
   &:hover {
     background-color: rgba(255, 117, 151, 0.15);
     border-color: $accent-pink;
@@ -715,6 +758,10 @@ export default class EditorView extends Vue {
   display: flex;
   overflow: hidden;
   position: relative;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+  }
 }
 
 .editor-viewport {
@@ -722,6 +769,49 @@ export default class EditorView extends Vue {
   height: 100%;
   position: relative;
   background-color: #faf0f4;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex: none;
+    height: 42vh;
+    min-height: 240px;
+    transition: height 0.25s ease;
+
+    &--fullscreen {
+      height: 100%;
+      flex: 1;
+    }
+  }
+}
+
+/* Mobile View Mode Toggle Button */
+.btn-mobile-view-toggle {
+  display: none;
+
+  @media (max-width: $breakpoint-mobile) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 25;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid $border-medium;
+    border-radius: $radius-full;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: $accent-pink;
+    box-shadow: 0 4px 12px rgba(230, 140, 165, 0.25);
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:active {
+      transform: scale(0.96);
+      background: #ffffff;
+    }
+  }
 }
 
 /* Sidebar */
@@ -735,6 +825,16 @@ export default class EditorView extends Vue {
   display: flex;
   flex-direction: column;
   gap: $space-md;
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 100%;
+    flex: 1;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid $border-subtle;
+    padding: $space-sm;
+    gap: $space-sm;
+  }
 
   &__section {
     background-color: #ffffff;
@@ -943,6 +1043,13 @@ export default class EditorView extends Vue {
   box-shadow: 0 16px 40px rgba(230, 140, 165, 0.25);
   box-sizing: border-box;
 
+  @media (max-width: $breakpoint-mobile) {
+    padding: $space-md;
+    width: 95vw;
+    max-width: 95vw;
+    border-radius: $radius-md;
+  }
+
   &--help {
     max-height: 88vh;
     display: flex;
@@ -1029,6 +1136,21 @@ export default class EditorView extends Vue {
   margin-bottom: $space-md;
   flex-shrink: 0;
   border: 1px solid $border-subtle;
+
+  @media (max-width: $breakpoint-mobile) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: $radius-lg;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .help-tab {
+      flex: none;
+      padding: 6px 10px;
+    }
+  }
 }
 
 .help-tab {

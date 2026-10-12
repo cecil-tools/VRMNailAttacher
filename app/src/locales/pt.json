@@ -52,7 +52,9 @@
     "resetCamera": "↺",
     "titleResetCamera": "Redefinir câmera para a posição inicial",
     "grid": "🌐 Grade",
-    "titleGrid": "Alternar exibição da grade"
+    "titleGrid": "Alternar exibição da grade",
+    "toggleSettings": "⚙️ Abrir Configurações",
+    "fullscreen3D": "⛶ 3D Tela Cheia"
   },
   "nailPanel": {
     "title": "Configurações de Unhas",

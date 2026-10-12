@@ -242,6 +242,17 @@ export default class GlobalScaleControl extends Vue {
   gap: 4px;
   margin-top: 2px;
   margin-bottom: $space-xs;
+
+  @media (max-width: $breakpoint-mobile) {
+    justify-content: space-between;
+
+    .btn-step {
+      flex: 1;
+      text-align: center;
+      padding: 5px 2px;
+      font-size: 11px;
+    }
+  }
 }
 
 .btn-step {
