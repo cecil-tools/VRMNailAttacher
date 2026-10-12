@@ -5,17 +5,35 @@
       <div class="editor-header__brand">
         <span class="editor-header__logo">💅</span>
         <div class="editor-header__title-group">
-          <h1 class="editor-header__title">VRMNailAttacher</h1>
-          <span class="editor-header__subtitle">Nail Art Atelier</span>
+          <h1 class="editor-header__title">{{ $t('header.title') }}</h1>
+          <span class="editor-header__subtitle">{{ $t('header.subtitle') }}</span>
         </div>
-        <span class="editor-header__tag">Alpha</span>
+        <span class="editor-header__tag">{{ $t('common.alpha') }}</span>
       </div>
       <div class="editor-header__actions">
+        <!-- Language Selector -->
+        <div class="locale-selector">
+          <select
+            :value="currentLocale"
+            class="locale-select"
+            title="Language"
+            @change="onLocaleChange($event.target.value)"
+          >
+            <option
+              v-for="item in supportedLocales"
+              :key="item.code"
+              :value="item.code"
+            >
+              {{ item.flag }} {{ item.label }}
+            </option>
+          </select>
+        </div>
+
         <button class="btn btn--secondary" @click="showAboutModal = true">
-          <span>ヘルプ</span>
+          <span>{{ $t('header.help') }}</span>
         </button>
         <button class="btn btn--primary" :disabled="!hasModel" @click="openExportModal">
-          <span>VRM エクスポート</span>
+          <span>{{ $t('header.export') }}</span>
         </button>
       </div>
     </header>
@@ -32,8 +50,8 @@
         <!-- Section 1: Avatar Load -->
         <div class="editor-sidebar__section">
           <div class="section-header">
-            <h3 class="section-title">アバター読み込み</h3>
-            <span v-if="hasModel" class="badge badge--success">読込済</span>
+            <h3 class="section-title">{{ $t('avatarLoad.title') }}</h3>
+            <span v-if="hasModel" class="badge badge--success">{{ $t('avatarLoad.loaded') }}</span>
           </div>
 
           <!-- File Upload Button -->
@@ -46,14 +64,14 @@
               @change="onFileSelected"
             />
             <button class="btn btn--secondary btn--full" @click="triggerFileInput">
-              <span>📁 ローカル VRM を開く</span>
+              <span>{{ $t('avatarLoad.openLocal') }}</span>
             </button>
-            <p class="upload-box__hint">または 3D エリアに直接ドラッグ＆ドロップ</p>
+            <p class="upload-box__hint">{{ $t('avatarLoad.dragDropHint') }}</p>
           </div>
 
           <!-- Preset Test Models Selector -->
           <div class="preset-selector">
-            <label class="preset-selector__label">テスト用プリセットモデル:</label>
+            <label class="preset-selector__label">{{ $t('avatarLoad.presetLabel') }}</label>
             <div class="preset-grid">
               <button
                 v-for="preset in presetModels"
@@ -74,18 +92,18 @@
 
         <!-- Section 2: Avatar Information -->
         <div v-if="hasModel && currentMeta" class="editor-sidebar__section">
-          <h3 class="section-title">モデル情報</h3>
+          <h3 class="section-title">{{ $t('modelInfo.title') }}</h3>
           <div class="meta-list">
             <div class="meta-item">
-              <span class="meta-item__key">タイトル:</span>
+              <span class="meta-item__key">{{ $t('modelInfo.modelTitle') }}</span>
               <span class="meta-item__value">{{ currentMeta.title }}</span>
             </div>
             <div v-if="currentMeta.authors" class="meta-item">
-              <span class="meta-item__key">作者:</span>
+              <span class="meta-item__key">{{ $t('modelInfo.author') }}</span>
               <span class="meta-item__value">{{ currentMeta.authors }}</span>
             </div>
             <div class="meta-item">
-              <span class="meta-item__key">規格:</span>
+              <span class="meta-item__key">{{ $t('modelInfo.format') }}</span>
               <span class="meta-item__value">VRM {{ currentMeta.vrmFormatVersion }}</span>
             </div>
           </div>
@@ -118,9 +136,9 @@
         <div class="modal-card__header">
           <div class="modal-card__header-title">
             <span class="modal-card__icon">💅</span>
-            <h2 class="modal-card__title">VRMNailAttacher 使い方ガイド</h2>
+            <h2 class="modal-card__title">{{ $t('helpModal.title') }}</h2>
           </div>
-          <button class="modal-card__close" title="閉じる" @click="showAboutModal = false">✕</button>
+          <button class="modal-card__close" :title="$t('common.close')" @click="showAboutModal = false">✕</button>
         </div>
 
         <!-- Help Tabs -->
@@ -131,7 +149,7 @@
             :class="{ 'help-tab--active': activeHelpTab === 'guide' }"
             @click="activeHelpTab = 'guide'"
           >
-            <span>📖 基本の流れ</span>
+            <span>{{ $t('helpModal.tabGuide') }}</span>
           </button>
           <button
             type="button"
@@ -139,7 +157,7 @@
             :class="{ 'help-tab--active': activeHelpTab === 'camera' }"
             @click="activeHelpTab = 'camera'"
           >
-            <span>🎮 カメラ・視点</span>
+            <span>{{ $t('helpModal.tabCamera') }}</span>
           </button>
           <button
             type="button"
@@ -147,7 +165,7 @@
             :class="{ 'help-tab--active': activeHelpTab === 'fitting' }"
             @click="activeHelpTab = 'fitting'"
           >
-            <span>💅 ネイル調整</span>
+            <span>{{ $t('helpModal.tabFitting') }}</span>
           </button>
           <button
             type="button"
@@ -155,7 +173,7 @@
             :class="{ 'help-tab--active': activeHelpTab === 'texture' }"
             @click="activeHelpTab = 'texture'"
           >
-            <span>🎨 テクスチャ・自作</span>
+            <span>{{ $t('helpModal.tabTexture') }}</span>
           </button>
         </div>
 
@@ -164,42 +182,42 @@
           <!-- Tab 1: 基本の流れ -->
           <div v-if="activeHelpTab === 'guide'" class="help-content">
             <div class="help-lead">
-              VRMNailAttacher は、VRM アバターにネイルチップ（爪の 3D モデル）を自動装着し、位置合わせやテクスチャの着せ替えを行える Web ツールです。
+              {{ $t('helpModal.lead') }}
             </div>
             <div class="help-steps">
               <div class="help-step-item">
                 <span class="help-step-item__num">1</span>
                 <div class="help-step-item__body">
-                  <strong>アバターを読み込む</strong>
-                  <p>右上の「ローカル VRM を開く」またはドラッグ＆ドロップでモデルを読み込みます。まずは試したい場合、プリセットモデルをクリックするだけで即座に開始できます。</p>
+                  <strong>{{ $t('helpModal.step1Title') }}</strong>
+                  <p>{{ $t('helpModal.step1Desc') }}</p>
                 </div>
               </div>
               <div class="help-step-item">
                 <span class="help-step-item__num">2</span>
                 <div class="help-step-item__body">
-                  <strong>ネイルを自動装着する</strong>
-                  <p>「💅 ネイルを自動装着する」ボタンをクリックすると、アバターの両手10本の指先ボーン（末節骨）を自動検出し、最適な向きでネイルチップが装着されます。</p>
+                  <strong>{{ $t('helpModal.step2Title') }}</strong>
+                  <p>{{ $t('helpModal.step2Desc') }}</p>
                 </div>
               </div>
               <div class="help-step-item">
                 <span class="help-step-item__num">3</span>
                 <div class="help-step-item__body">
-                  <strong>カメラで指先を拡大確認</strong>
-                  <p>下部バーの「☝️ 指先」ボタンを押すと、現在調整中の指先へカメラが最短距離でクローズアップします。ポーズを「手開き」にすると作業が格段にしやすくなります。</p>
+                  <strong>{{ $t('helpModal.step3Title') }}</strong>
+                  <p>{{ $t('helpModal.step3Desc') }}</p>
                 </div>
               </div>
               <div class="help-step-item">
                 <span class="help-step-item__num">4</span>
                 <div class="help-step-item__body">
-                  <strong>サイズ・位置を微調整</strong>
-                  <p>「全指一括サイズ調整」で全体の大きさを合わせ、必要に応じて指セレクターで個別の指の位置や角度をピッタリ合わせます。</p>
+                  <strong>{{ $t('helpModal.step4Title') }}</strong>
+                  <p>{{ $t('helpModal.step4Desc') }}</p>
                 </div>
               </div>
               <div class="help-step-item">
                 <span class="help-step-item__num">5</span>
                 <div class="help-step-item__body">
-                  <strong>テクスチャの選択・アップロード</strong>
-                  <p>チーク、フレンチ、ベイビーブーマー等のプリセットから選ぶか、自作画像をドロップしてオリジナルのネイルを適用できます。</p>
+                  <strong>{{ $t('helpModal.step5Title') }}</strong>
+                  <p>{{ $t('helpModal.step5Desc') }}</p>
                 </div>
               </div>
             </div>
@@ -208,43 +226,43 @@
           <!-- Tab 2: カメラ・視点操作 -->
           <div v-if="activeHelpTab === 'camera'" class="help-content">
             <div class="help-section-card">
-              <h4 class="help-section-card__title">🖱️ マウス / トラックパッド操作</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.mouseControlsTitle') }}</h4>
               <table class="help-table">
                 <tbody>
                   <tr>
-                    <th>左ドラッグ</th>
-                    <td>カメラの周回回転（360度あらゆる角度からチェック可能）</td>
+                    <th>{{ $t('helpModal.mouseOrbit') }}</th>
+                    <td>{{ $t('helpModal.mouseOrbitDesc') }}</td>
                   </tr>
                   <tr>
-                    <th>右ドラッグ / 2本指</th>
-                    <td>カメラの平行移動（パン）</td>
+                    <th>{{ $t('helpModal.mousePan') }}</th>
+                    <td>{{ $t('helpModal.mousePanDesc') }}</td>
                   </tr>
                   <tr>
-                    <th>ホイール / ピンチ</th>
-                    <td>ズームイン / ズームアウト</td>
+                    <th>{{ $t('helpModal.mouseZoom') }}</th>
+                    <td>{{ $t('helpModal.mouseZoomDesc') }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <div class="help-section-card">
-              <h4 class="help-section-card__title">🎬 画面下部のカメラ・ツールバー</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.cameraToolbarTitle') }}</h4>
               <div class="help-badge-list">
                 <div class="help-badge-item">
-                  <span class="help-badge-item__name">☝️ 指先</span>
-                  <span class="help-badge-item__desc">作業中の指先へ瞬時にクローズアップ。指を切り替えるたびに自動追従します。</span>
+                  <span class="help-badge-item__name">{{ $t('viewport.focusFingertip') }}</span>
+                  <span class="help-badge-item__desc">{{ $t('helpModal.badgeFingertipDesc') }}</span>
                 </div>
                 <div class="help-badge-item">
-                  <span class="help-badge-item__name">手元 / 左手 / 右手</span>
-                  <span class="help-badge-item__desc">手全体を自然な距離から俯瞰確認できます。</span>
+                  <span class="help-badge-item__name">{{ $t('viewport.focusHands') }} / {{ $t('viewport.focusLeftHand') }} / {{ $t('viewport.focusRightHand') }}</span>
+                  <span class="help-badge-item__desc">{{ $t('helpModal.badgeHandsDesc') }}</span>
                 </div>
                 <div class="help-badge-item">
-                  <span class="help-badge-item__name">真上 / 斜め</span>
-                  <span class="help-badge-item__desc">爪の厚みや生え際の角度を真上・斜めから正確にチェックできます。</span>
+                  <span class="help-badge-item__name">{{ $t('viewport.angleTop') }} / {{ $t('viewport.angleNormal') }}</span>
+                  <span class="help-badge-item__desc">{{ $t('helpModal.badgeTopAngleDesc') }}</span>
                 </div>
                 <div class="help-badge-item">
-                  <span class="help-badge-item__name">👐 手開き / 🧍 Tポーズ</span>
-                  <span class="help-badge-item__desc">「手開き」ポーズにすると指が綺麗に伸びてネイルの微調整が簡単になります。</span>
+                  <span class="help-badge-item__name">{{ $t('viewport.poseOpenHand') }} / {{ $t('viewport.poseTPose') }}</span>
+                  <span class="help-badge-item__desc">{{ $t('helpModal.badgePoseDesc') }}</span>
                 </div>
               </div>
             </div>
@@ -253,26 +271,26 @@
           <!-- Tab 3: ネイル調整のコツ -->
           <div v-if="activeHelpTab === 'fitting'" class="help-content">
             <div class="help-section-card">
-              <h4 class="help-section-card__title">📏 全指一括サイズ調整</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.globalScaleTitle') }}</h4>
               <p class="help-text">
-                アバターによって手の大きさや指の太さが異なります。「全体サイズ」スライダー（0.5x〜2.0x）を動かすか、<code>-0.01</code> <code>+0.01</code> 刻みボタンでまず大まかなサイズ感を合わせます。
+                {{ $t('helpModal.globalScaleDesc1') }}
               </p>
               <p class="help-text">
-                <strong>詳細比率の調整</strong>: 「詳細比率を開く」をクリックすると、爪の「長さ（前後）」「幅（左右）」「厚み（上下）」を独立して調整可能です。細長い爪やショートネイルなど好みのフォルムを作れます。
-              </p>
-            </div>
-
-            <div class="help-section-card">
-              <h4 class="help-section-card__title">🎯 指ごとの個別微調整</h4>
-              <p class="help-text">
-                指セレクター（親指・人差し指・中指・薬指・小指）で調整したい指を選択します。位置オフセット（X/Y/Z）や回転オフセット（ロール/ピッチ/ヨー）のスライダーで、指先の甘皮や爪の生え際にぴったりフィットさせます。
+                {{ $t('helpModal.globalScaleDesc2') }}
               </p>
             </div>
 
             <div class="help-section-card">
-              <h4 class="help-section-card__title">🪞 左右対称ミラーリング</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.fingerFittingTitle') }}</h4>
               <p class="help-text">
-                「左右対称ミラーリング」にチェックが入っている場合、左手を調整すると右手の同じ指にも自動で対称に反映されます。左右で異なる長さや角度にしたい場合はチェックを外してください。
+                {{ $t('helpModal.fingerFittingDesc') }}
+              </p>
+            </div>
+
+            <div class="help-section-card">
+              <h4 class="help-section-card__title">{{ $t('helpModal.symmetryTitle') }}</h4>
+              <p class="help-text">
+                {{ $t('helpModal.symmetryDesc') }}
               </p>
             </div>
           </div>
@@ -280,32 +298,31 @@
           <!-- Tab 4: テクスチャ・自作デザイン -->
           <div v-if="activeHelpTab === 'texture'" class="help-content">
             <div class="help-section-card">
-              <h4 class="help-section-card__title">💅 適用範囲（全指一括 / 選択指のみ）</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.scopeTitle') }}</h4>
               <p class="help-text">
-                <strong>全指一括 (10本)</strong>: 選択したデザインを10本すべての爪にまとめて適用します。<br/>
-                <strong>選択中の指のみ</strong>: 現在選択されている指（および左右同期の指）だけにテクスチャをピンポイント適用できます。1本だけフレンチやラメにしたり、指ごとに色を変えるアシンメトリーネイルが可能です。
+                {{ $t('helpModal.scopeDesc') }}
               </p>
             </div>
 
             <div class="help-section-card">
-              <h4 class="help-section-card__title">📤 画像のアップロード（即時反映）</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.uploadHelpTitle') }}</h4>
               <p class="help-text">
-                「テクスチャのアップロード」エリアに、PC 内の PNG / JPEG / WebP 画像をドラッグ＆ドロップ（またはクリックして選択）するだけで、瞬時にネイルへ反映されます。アップロードした画像は「マイテクスチャ」として保存・再選択・削除が可能です。
+                {{ $t('helpModal.uploadHelpDesc') }}
               </p>
             </div>
 
             <div class="help-section-card">
-              <h4 class="help-section-card__title">🎨 制作・編集用テンプレートのダウンロード</h4>
+              <h4 class="help-section-card__title">{{ $t('helpModal.templateDownloadTitle') }}</h4>
               <p class="help-text">
-                ご自身でオリジナルネイルを描きたい方向けに、制作テンプレートをワンクリックでダウンロードできます:
+                {{ $t('helpModal.templateDownloadDesc') }}
               </p>
               <ul class="help-feature-list">
-                <li><strong>ベーステクスチャ (PNG)</strong>: 描画の基準となる無地テクスチャ</li>
-                <li><strong>UV展開マップ (PNG)</strong>: 爪のポリゴン境界線・展開図ガイド</li>
-                <li><strong>編集用テンプレート (PSD)</strong>: レイヤー分けされたPhotoshop元データ</li>
+                <li><strong>{{ $t('helpModal.templateListBase') }}</strong></li>
+                <li><strong>{{ $t('helpModal.templateListUV') }}</strong></li>
+                <li><strong>{{ $t('helpModal.templateListPsd') }}</strong></li>
               </ul>
               <p class="help-subtext">
-                ※ Photoshop, CLIP STUDIO PAINT, Procreate, ibisPaint 等のペイントアプリで開いて自由にイラストやパーツを描き込み、PNG保存してアップロードしてください。
+                {{ $t('helpModal.templateNote') }}
               </p>
             </div>
           </div>
@@ -314,7 +331,7 @@
         <!-- Modal Footer -->
         <div class="modal-card__footer">
           <button class="btn btn--primary btn--full" @click="showAboutModal = false">
-            閉じる
+            {{ $t('common.close') }}
           </button>
         </div>
       </div>
@@ -345,6 +362,7 @@ import ExportModal, { ExportFormPayload } from '@/components/Modal/ExportModal.v
 import { PresetModel } from '@/store';
 import { VRMModelMeta } from '@/modules/vrm/VRMLoader';
 import { FingerId, NailTransform, NailMaterialType } from '@/modules/nail/types';
+import { SUPPORTED_LOCALES, setAppLocale, SupportedLocale } from '@/plugins/i18n';
 
 @Component({
   components: {
@@ -359,6 +377,18 @@ export default class EditorView extends Vue {
 
   private showAboutModal = false;
   private activeHelpTab: 'guide' | 'camera' | 'fitting' | 'texture' = 'guide';
+
+  get currentLocale(): string {
+    return this.$i18n.locale;
+  }
+
+  get supportedLocales() {
+    return SUPPORTED_LOCALES;
+  }
+
+  private onLocaleChange(newLocale: string): void {
+    setAppLocale(newLocale as SupportedLocale);
+  }
 
   get hasModel(): boolean {
     return this.$store.getters.hasModel;
@@ -642,6 +672,40 @@ export default class EditorView extends Vue {
     display: flex;
     align-items: center;
     gap: $space-md;
+  }
+}
+
+.locale-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.locale-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 117, 151, 0.08);
+  border: 1px solid rgba(255, 117, 151, 0.25);
+  border-radius: $radius-full;
+  padding: 6px 28px 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-primary;
+  cursor: pointer;
+  outline: none;
+  transition: all $transition-fast;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff7597' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+
+  &:hover {
+    background-color: rgba(255, 117, 151, 0.15);
+    border-color: $accent-pink;
+  }
+
+  &:focus {
+    border-color: $accent-pink;
+    box-shadow: 0 0 0 2px rgba(255, 117, 151, 0.2);
   }
 }
 

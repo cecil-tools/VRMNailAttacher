@@ -3,13 +3,13 @@
     <!-- Header with Toggle -->
     <div class="panel-header">
       <div class="panel-header__info">
-        <h3 class="panel-title">ネイルチップ設定</h3>
+        <h3 class="panel-title">{{ $t('nailPanel.title') }}</h3>
         <span class="badge" :class="isAttached ? 'badge--success' : 'badge--muted'">
-          {{ isAttached ? '装着中 (10本)' : '未装着' }}
+          {{ isAttached ? $t('nailPanel.statusAttached') : $t('nailPanel.statusUnattached') }}
         </span>
       </div>
 
-      <label class="switch" title="ネイルの装着 / 解除">
+      <label class="switch" :title="$t('nailPanel.switchTitle')">
         <input
           type="checkbox"
           :checked="isAttached"
@@ -23,22 +23,22 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="panel-loading">
       <span class="spinner-small"></span>
-      <span>ネイル 3D モデルを準備中...</span>
+      <span>{{ $t('nailPanel.preparing') }}</span>
     </div>
 
     <!-- Active Nail Controls -->
     <div v-else-if="isAttached" class="panel-content">
       <!-- Auto Mesh Fit Option Bar -->
       <div class="mesh-fit-bar">
-        <label class="mesh-fit-label" title="指の肉付き・表面高さに合わせて爪の位置を自動最適化します">
+        <label class="mesh-fit-label" :title="$t('nailPanel.autoMeshFitTitle')">
           <input
             type="checkbox"
             :checked="autoMeshFit"
             @change="onToggleAutoMeshFit"
           />
-          <span class="mesh-fit-text">✨ 指メッシュに自動フィット</span>
+          <span class="mesh-fit-text">{{ $t('nailPanel.autoMeshFit') }}</span>
         </label>
-        <span class="mesh-fit-badge">自動補正</span>
+        <span class="mesh-fit-badge">{{ $t('nailPanel.autoMeshFitBadge') }}</span>
       </div>
 
       <!-- Global Scale Controls (全指一括サイズ調整) -->
@@ -76,14 +76,14 @@
     <!-- Inactive State Hint -->
     <div v-else class="panel-empty">
       <p class="panel-empty__desc">
-        スイッチを ON にすると、アバターの左右 10 本の指先ボーンへネイルチップ 3D モデルを自動装着します。
+        {{ $t('nailPanel.emptyDesc') }}
       </p>
       <button
         class="btn btn--primary btn--full"
         :disabled="!hasModel"
         @click="attachNails"
       >
-        <span>💅 ネイルを自動装着する</span>
+        <span>{{ $t('nailPanel.attachButton') }}</span>
       </button>
     </div>
   </div>

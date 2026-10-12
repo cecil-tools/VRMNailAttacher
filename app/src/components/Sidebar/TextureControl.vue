@@ -1,20 +1,20 @@
 <template>
   <div class="texture-control">
+    <!-- セクションヘッダー & 適用スコープ切り替え -->
     <div class="control-group">
-      <!-- セクションヘッダー & 適用スコープ切り替え -->
       <div class="control-group__header">
-        <span class="control-group__title">ネイルデザイン (テクスチャ)</span>
+        <span class="control-group__title">{{ $t('texture.title') }}</span>
       </div>
 
       <!-- 全指共通デザイン（マテリアル統合）案内バッジ -->
       <div class="scope-info-badge">
         <span class="scope-info-badge__icon">💅</span>
-        <span class="scope-info-badge__text">全指共通デザイン（マテリアル1つに統合）</span>
+        <span class="scope-info-badge__text">{{ $t('texture.scopeUnified') }}</span>
       </div>
 
       <!-- プリセットテクスチャ一覧 -->
       <div class="section-sub-header">
-        <span class="section-sub-title">プリセットデザイン</span>
+        <span class="section-sub-title">{{ $t('texture.presetTitle') }}</span>
       </div>
 
       <div class="texture-grid">
@@ -39,7 +39,7 @@
       <!-- アップロード済みマイテクスチャ -->
       <div v-if="customTextures.length > 0" class="custom-section">
         <div class="section-sub-header">
-          <span class="section-sub-title">マイテクスチャ ({{ customTextures.length }})</span>
+          <span class="section-sub-title">{{ $t('texture.myTextureTitle', { count: customTextures.length }) }}</span>
         </div>
         <div class="texture-grid">
           <div
@@ -55,12 +55,12 @@
             </div>
             <div class="texture-card__text">
               <span class="texture-card__name">{{ custom.name }}</span>
-              <span class="texture-card__sub">カスタム</span>
+              <span class="texture-card__sub">{{ $t('texture.customBadge') }}</span>
             </div>
             <button
               type="button"
               class="custom-card__delete"
-              title="削除"
+              :title="$t('texture.deleteCustom')"
               @click.stop="removeCustom(custom.id)"
             >
               ✕
@@ -71,7 +71,7 @@
 
       <!-- カスタム画像アップロード -->
       <div class="section-sub-header">
-        <span class="section-sub-title">テクスチャのアップロード</span>
+        <span class="section-sub-title">{{ $t('texture.uploadTitle') }}</span>
       </div>
 
       <div
@@ -92,8 +92,8 @@
         <div class="upload-dropzone__content">
           <span class="upload-dropzone__icon">📤</span>
           <div class="upload-dropzone__label">
-            <span class="upload-dropzone__main-text">画像ファイルをドロップ</span>
-            <span class="upload-dropzone__sub-text">または クリックして選択 (PNG / JPG / WebP)</span>
+            <span class="upload-dropzone__main-text">{{ $t('texture.dropTitle') }}</span>
+            <span class="upload-dropzone__sub-text">{{ $t('texture.dropSub') }}</span>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@
       <!-- 制作・編集用テンプレートダウンロード -->
       <div class="templates-section">
         <div class="section-sub-header">
-          <span class="section-sub-title">制作・編集用テンプレート</span>
+          <span class="section-sub-title">{{ $t('texture.templateSection') }}</span>
         </div>
         <div class="template-list">
           <div
@@ -121,7 +121,7 @@
             >
               <span v-if="downloadingId === tpl.id" class="btn-download__spinner">⏳</span>
               <span v-else class="btn-download__icon">💾</span>
-              <span class="btn-download__text">{{ downloadingId === tpl.id ? 'DL中...' : 'DL' }}</span>
+              <span class="btn-download__text">{{ downloadingId === tpl.id ? $t('texture.downloading') : $t('texture.downloadBtn') }}</span>
             </button>
           </div>
         </div>
@@ -130,7 +130,7 @@
       <!-- 質感・シェーダー切り替え -->
       <div class="shader-section">
         <div class="section-sub-header">
-          <span class="section-sub-title">質感・シェーダー</span>
+          <span class="section-sub-title">{{ $t('texture.shaderSection') }}</span>
         </div>
         <div class="shader-tabs">
           <button
@@ -139,8 +139,8 @@
             :class="{ 'shader-tab--active': materialType === 'mtoon' }"
             @click="setMaterialType('mtoon')"
           >
-            <span class="shader-tab__title">🎨 MToon (アニメ調)</span>
-            <span class="shader-tab__desc">アバターと調和 (推奨)</span>
+            <span class="shader-tab__title">{{ $t('texture.mtoonTitle') }}</span>
+            <span class="shader-tab__desc">{{ $t('texture.mtoonDesc') }}</span>
           </button>
           <button
             type="button"
@@ -148,8 +148,8 @@
             :class="{ 'shader-tab--active': materialType === 'standard' }"
             @click="setMaterialType('standard')"
           >
-            <span class="shader-tab__title">✨ Standard (リアル調)</span>
-            <span class="shader-tab__desc">物理ベース・滑らか陰影</span>
+            <span class="shader-tab__title">{{ $t('texture.standardTitle') }}</span>
+            <span class="shader-tab__desc">{{ $t('texture.standardDesc') }}</span>
           </button>
         </div>
       </div>
