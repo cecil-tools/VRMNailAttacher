@@ -5,11 +5,11 @@
       <div class="modal-card__header">
         <div class="modal-card__header-title">
           <span class="modal-card__icon">📦</span>
-          <h2 class="modal-card__title">VRM エクスポート</h2>
+          <h2 class="modal-card__title">{{ $t('exportModal.title') }}</h2>
         </div>
         <button
           class="modal-card__close"
-          title="閉じる"
+          :title="$t('common.close')"
           :disabled="isExporting"
           @click="handleClose"
         >
@@ -22,24 +22,24 @@
         <!-- Status summary banner -->
         <div class="export-summary">
           <div class="export-summary__item">
-            <span class="export-summary__label">対象モデル</span>
-            <span class="export-summary__value">{{ defaultModelName || '未選択' }}</span>
+            <span class="export-summary__label">{{ $t('exportModal.targetModel') }}</span>
+            <span class="export-summary__value">{{ defaultModelName || $t('exportModal.unselected') }}</span>
           </div>
           <div class="export-summary__item">
-            <span class="export-summary__label">規格</span>
+            <span class="export-summary__label">{{ $t('exportModal.format') }}</span>
             <span class="export-summary__value badge-format">VRM {{ vrmVersion || '0.x' }}</span>
           </div>
           <div class="export-summary__item">
-            <span class="export-summary__label">装着ネイル</span>
+            <span class="export-summary__label">{{ $t('exportModal.attachedCount') }}</span>
             <span
               class="export-summary__value"
               :class="{ 'text-warning': attachedCount === 0, 'text-success': attachedCount > 0 }"
             >
-              💅 {{ attachedCount }} / 10 本
+              {{ $t('exportModal.nailsCount', { count: attachedCount }) }}
             </span>
           </div>
           <div class="export-summary__item">
-            <span class="export-summary__label">質感シェーダー</span>
+            <span class="export-summary__label">{{ $t('exportModal.shader') }}</span>
             <span class="export-summary__value badge-format">
               {{ materialType === 'mtoon' ? '🎨 MToon' : '✨ Standard' }}
             </span>
@@ -47,13 +47,13 @@
         </div>
 
         <div v-if="attachedCount === 0" class="alert-box alert-box--warning">
-          ⚠️ ネイルが1本も装着されていません。元のアバターデータのみで出力されます。
+          {{ $t('exportModal.warningNoNails') }}
         </div>
 
         <!-- Form fields -->
         <div class="form-group">
           <label class="form-label" for="export-filename">
-            出力ファイル名 (.vrm) <span class="required">*</span>
+            {{ $t('exportModal.filenameLabel') }} <span class="required">*</span>
           </label>
           <input
             id="export-filename"
@@ -67,24 +67,24 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label" for="export-title">アバター名 (Title)</label>
+            <label class="form-label" for="export-title">{{ $t('exportModal.avatarTitleLabel') }}</label>
             <input
               id="export-title"
               v-model="avatarTitle"
               type="text"
               class="form-input"
-              placeholder="アバター名"
+              :placeholder="$t('exportModal.avatarTitleLabel')"
               :disabled="isExporting"
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="export-author">作者名 (Author)</label>
+            <label class="form-label" for="export-author">{{ $t('exportModal.avatarAuthorLabel') }}</label>
             <input
               id="export-author"
               v-model="avatarAuthors"
               type="text"
               class="form-input"
-              placeholder="作者名"
+              :placeholder="$t('exportModal.avatarAuthorLabel')"
               :disabled="isExporting"
             />
           </div>
@@ -94,9 +94,9 @@
         <div class="info-note">
           <span class="info-note__icon">🛡️</span>
           <div class="info-note__text">
-            <strong>完全非破壊バイナリパッチ + MToon シェーダー拡張</strong>
+            <strong>{{ $t('exportModal.nonDestructiveTitle') }}</strong>
             <p>
-              元 VRM の MToon 設定、揺れもの物理（SpringBone）、表情モーフ、ボーン階層を 100% 保持したまま、各指先ボーンへ MToon（セル調）対応のネイルメッシュ・テクスチャを追記して出力します。
+              {{ $t('exportModal.nonDestructiveDesc') }}
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@
           :disabled="isExporting"
           @click="handleClose"
         >
-          キャンセル
+          {{ $t('exportModal.cancel') }}
         </button>
         <button
           class="btn btn--primary btn--export"
@@ -122,7 +122,7 @@
           @click="handleExport"
         >
           <span v-if="isExporting" class="spinner"></span>
-          <span>{{ isExporting ? 'VRM 生成中...' : '💾 エクスポートして保存' }}</span>
+          <span>{{ isExporting ? $t('exportModal.generating') : $t('exportModal.saveBtn') }}</span>
         </button>
       </div>
     </div>

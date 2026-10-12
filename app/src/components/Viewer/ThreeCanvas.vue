@@ -12,7 +12,7 @@
     <div v-if="isDragging" class="drag-overlay">
       <div class="drag-overlay__content">
         <span class="drag-overlay__icon">📂</span>
-        <p class="drag-overlay__text">VRM ファイルをここにドロップしてください</p>
+        <p class="drag-overlay__text">{{ $t('viewport.dragDropOverlay') }}</p>
       </div>
     </div>
 
@@ -20,7 +20,7 @@
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-card">
         <div class="loading-spinner"></div>
-        <p class="loading-card__message">{{ loadingMessage || '読み込み中...' }}</p>
+        <p class="loading-card__message">{{ loadingMessage || $t('viewport.loading') }}</p>
         <div class="loading-bar">
           <div class="loading-bar__fill" :style="{ width: loadingProgress + '%' }"></div>
         </div>
@@ -35,50 +35,50 @@
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'hands' }"
-          title="両手・ネイルフォーカス"
+          :title="$t('viewport.titleFocusHands')"
           @click="changeFocus('hands')"
         >
-          <span>💅 手元</span>
+          <span>{{ $t('viewport.focusHands') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'fingertip' }"
-          title="選択中の指先を拡大フォーカス"
+          :title="$t('viewport.titleFocusFingertip')"
           @click="changeFocus('fingertip')"
         >
-          <span>☝️ 指先</span>
+          <span>{{ $t('viewport.focusFingertip') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'leftHand' }"
-          title="左手フォーカス"
+          :title="$t('viewport.titleFocusLeftHand')"
           @click="changeFocus('leftHand')"
         >
-          <span>👈 左手</span>
+          <span>{{ $t('viewport.focusLeftHand') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'rightHand' }"
-          title="右手フォーカス"
+          :title="$t('viewport.titleFocusRightHand')"
           @click="changeFocus('rightHand')"
         >
-          <span>👉 右手</span>
+          <span>{{ $t('viewport.focusRightHand') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'upper' }"
-          title="上半身"
+          :title="$t('viewport.titleFocusUpper')"
           @click="changeFocus('upper')"
         >
-          <span>上半身</span>
+          <span>{{ $t('viewport.focusUpper') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentFocus === 'full' }"
-          title="全身"
+          :title="$t('viewport.titleFocusFull')"
           @click="changeFocus('full')"
         >
-          <span>全身</span>
+          <span>{{ $t('viewport.focusFull') }}</span>
         </button>
       </div>
 
@@ -89,18 +89,18 @@
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentAngle === 'normal' }"
-          title="斜め正面アングル"
+          :title="$t('viewport.titleAngleNormal')"
           @click="changeAngle('normal')"
         >
-          <span>👁 斜め</span>
+          <span>{{ $t('viewport.angleNormal') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentAngle === 'top' }"
-          title="選択部位を真上から見下ろす（俯瞰）"
+          :title="$t('viewport.titleAngleTop')"
           @click="changeAngle('top')"
         >
-          <span>🔝 真上</span>
+          <span>{{ $t('viewport.angleTop') }}</span>
         </button>
       </div>
 
@@ -110,18 +110,18 @@
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentPose === 'tpose' }"
-          title="標準 T-Pose"
+          :title="$t('viewport.titlePoseTPose')"
           @click="setPose('tpose')"
         >
-          <span>🧍 Tポーズ</span>
+          <span>{{ $t('viewport.poseTPose') }}</span>
         </button>
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': currentPose === 'nail' }"
-          title="手開きリラックスポーズ"
+          :title="$t('viewport.titlePoseOpenHand')"
           @click="setPose('nail')"
         >
-          <span>👐 手開き</span>
+          <span>{{ $t('viewport.poseOpenHand') }}</span>
         </button>
       </div>
 
@@ -131,10 +131,10 @@
         <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': gridVisible }"
-          title="グリッド表示切り替え"
+          :title="$t('viewport.titleGrid')"
           @click="toggleGrid"
         >
-          <span>🌐 グリッド</span>
+          <span>{{ $t('viewport.grid') }}</span>
         </button>
       </div>
     </div>

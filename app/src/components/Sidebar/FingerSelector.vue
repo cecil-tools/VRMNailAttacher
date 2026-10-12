@@ -7,14 +7,14 @@
         :class="{ 'hand-tab--active': activeHand === 'left' }"
         @click="selectHand('left')"
       >
-        <span>👈 左手</span>
+        <span>{{ $t('fingerSelector.leftHand') }}</span>
       </button>
       <button
         class="hand-tab"
         :class="{ 'hand-tab--active': activeHand === 'right' }"
         @click="selectHand('right')"
       >
-        <span>👉 右手</span>
+        <span>{{ $t('fingerSelector.rightHand') }}</span>
       </button>
     </div>
 
@@ -28,27 +28,27 @@
         @click="selectFinger(finger.id)"
       >
         <span class="finger-btn__icon">💅</span>
-        <span class="finger-btn__name">{{ finger.shortLabel }}</span>
+        <span class="finger-btn__name">{{ $t('fingerSelector.fingers.' + finger.type) }}</span>
       </button>
     </div>
 
     <!-- Options: Symmetry Link & Focus -->
     <div class="selector-options">
-      <label class="toggle-control" title="左手・右手の調整値を自動的にミラーリング反映します">
+      <label class="toggle-control" :title="$t('fingerSelector.symmetryTitle')">
         <input
           type="checkbox"
           :checked="symmetrySync"
           @change="onToggleSymmetry"
         />
-        <span class="toggle-control__label">🔗 左右対称ミラーリング</span>
+        <span class="toggle-control__label">{{ $t('fingerSelector.symmetry') }}</span>
       </label>
 
       <button
         class="btn-focus-tip"
-        title="選択中の指先を画面中央にフォーカス"
+        :title="$t('fingerSelector.focusTipTitle')"
         @click="$emit('focus-finger', selectedFinger)"
       >
-        <span>🔍 指先にフォーカス</span>
+        <span>{{ $t('fingerSelector.focusTip') }}</span>
       </button>
     </div>
   </div>
@@ -60,7 +60,7 @@ import { FingerId, HandSide, FINGER_DEFINITIONS } from '@/modules/nail/types';
 
 interface FingerItem {
   id: FingerId;
-  shortLabel: string;
+  type: string;
 }
 
 @Component
@@ -82,11 +82,11 @@ export default class FingerSelector extends Vue {
   get currentHandFingers(): FingerItem[] {
     const isLeft = this.activeHand === 'left';
     return [
-      { id: isLeft ? 'leftThumb' : 'rightThumb', shortLabel: '親指' },
-      { id: isLeft ? 'leftIndex' : 'rightIndex', shortLabel: '人差指' },
-      { id: isLeft ? 'leftMiddle' : 'rightMiddle', shortLabel: '中指' },
-      { id: isLeft ? 'leftRing' : 'rightRing', shortLabel: '薬指' },
-      { id: isLeft ? 'leftLittle' : 'rightLittle', shortLabel: '小指' }
+      { id: isLeft ? 'leftThumb' : 'rightThumb', type: 'thumb' },
+      { id: isLeft ? 'leftIndex' : 'rightIndex', type: 'index' },
+      { id: isLeft ? 'leftMiddle' : 'rightMiddle', type: 'middle' },
+      { id: isLeft ? 'leftRing' : 'rightRing', type: 'ring' },
+      { id: isLeft ? 'leftLittle' : 'rightLittle', type: 'little' }
     ];
   }
 

@@ -2,12 +2,12 @@
   <div class="morph-control">
     <div class="control-group">
       <div class="control-group__header">
-        <span class="control-group__title">形状モーフ（Blendshape）</span>
-        <button class="btn-text-reset" @click="resetMorphs">リセット</button>
+        <span class="control-group__title">{{ $t('morph.title') }}</span>
+        <button class="btn-text-reset" @click="resetMorphs">{{ $t('morph.reset') }}</button>
       </div>
 
       <div v-if="morphList.length === 0" class="morph-empty">
-        利用可能なモーフターゲットがありません
+        {{ $t('morph.empty') }}
       </div>
 
       <div
@@ -39,13 +39,6 @@ interface MorphItem {
   label: string;
 }
 
-const MORPH_LABELS: Record<string, string> = {
-  flat: 'フラット (平坦)',
-  curl: 'カーブ (全体の丸み)',
-  curl_front: '先端カーブ',
-  curl_back: '根元カーブ'
-};
-
 @Component
 export default class MorphControl extends Vue {
   get currentFingerId(): FingerId {
@@ -58,10 +51,14 @@ export default class MorphControl extends Vue {
   }
 
   get morphList(): MorphItem[] {
-    return this.availableMorphNames.map((name) => ({
-      name,
-      label: MORPH_LABELS[name] || name
-    }));
+    return this.availableMorphNames.map((name) => {
+      const key = `morph.labels.${name}`;
+      const label = this.$te(key) ? this.$t(key) : name;
+      return {
+        name,
+        label: String(label)
+      };
+    });
   }
 
   private getMorphValue(name: string): number {

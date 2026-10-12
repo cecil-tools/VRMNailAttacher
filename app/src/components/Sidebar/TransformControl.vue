@@ -3,10 +3,10 @@
     <!-- Section: Position -->
     <div class="control-group">
       <div class="control-group__header">
-        <span class="control-group__title">位置オフセット (mm)</span>
+        <span class="control-group__title">{{ $t('transform.positionTitle') }}</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">前後 (先端/根元):</label>
+        <label class="slider-label">{{ $t('transform.forward') }}</label>
         <input
           type="range"
           min="-15"
@@ -18,7 +18,7 @@
         <span class="slider-val">{{ currentTransform.offsetForward.toFixed(1) }}</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">左右 (内外):</label>
+        <label class="slider-label">{{ $t('transform.side') }}</label>
         <input
           type="range"
           min="-10"
@@ -30,7 +30,7 @@
         <span class="slider-val">{{ currentTransform.offsetSide.toFixed(1) }}</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">上下 (浮き/沈み):</label>
+        <label class="slider-label">{{ $t('transform.height') }}</label>
         <input
           type="range"
           min="-5"
@@ -46,10 +46,10 @@
     <!-- Section: Rotation -->
     <div class="control-group">
       <div class="control-group__header">
-        <span class="control-group__title">角度オフセット (°)</span>
+        <span class="control-group__title">{{ $t('transform.rotationTitle') }}</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">前後傾き (Pitch):</label>
+        <label class="slider-label">{{ $t('transform.pitch') }}</label>
         <input
           type="range"
           min="-45"
@@ -61,7 +61,7 @@
         <span class="slider-val">{{ currentTransform.pitch.toFixed(1) }}°</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">首振り (Yaw):</label>
+        <label class="slider-label">{{ $t('transform.yaw') }}</label>
         <input
           type="range"
           min="-45"
@@ -73,7 +73,7 @@
         <span class="slider-val">{{ currentTransform.yaw.toFixed(1) }}°</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">ひねり (Roll):</label>
+        <label class="slider-label">{{ $t('transform.roll') }}</label>
         <input
           type="range"
           min="-45"
@@ -89,10 +89,10 @@
     <!-- Section: Scale -->
     <div class="control-group">
       <div class="control-group__header">
-        <span class="control-group__title">サイズ・スケール倍率</span>
+        <span class="control-group__title">{{ $t('transform.scaleTitle') }}</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">全体サイズ:</label>
+        <label class="slider-label">{{ $t('transform.scaleAll') }}</label>
         <input
           type="range"
           min="0.3"
@@ -104,7 +104,7 @@
         <span class="slider-val">{{ currentTransform.scaleAll.toFixed(2) }}x</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">長さ倍率:</label>
+        <label class="slider-label">{{ $t('transform.scaleLength') }}</label>
         <input
           type="range"
           min="0.4"
@@ -116,7 +116,7 @@
         <span class="slider-val">{{ currentTransform.scaleLength.toFixed(2) }}x</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">幅倍率:</label>
+        <label class="slider-label">{{ $t('transform.scaleWidth') }}</label>
         <input
           type="range"
           min="0.4"
@@ -128,7 +128,7 @@
         <span class="slider-val">{{ currentTransform.scaleWidth.toFixed(2) }}x</span>
       </div>
       <div class="slider-row">
-        <label class="slider-label">厚み倍率:</label>
+        <label class="slider-label">{{ $t('transform.scaleThickness') }}</label>
         <input
           type="range"
           min="0.4"
@@ -143,11 +143,11 @@
 
     <!-- Actions -->
     <div class="action-buttons">
-      <button class="btn btn--secondary btn--sm" @click="resetCurrent">
-        <span>↺ この指をリセット</span>
+      <button class="btn btn--secondary btn--sm" :title="$t('transform.resetTitle')" @click="resetCurrent">
+        <span>{{ $t('transform.reset') }}</span>
       </button>
-      <button class="btn btn--secondary btn--sm" @click="applyToAll">
-        <span>全指に適用</span>
+      <button class="btn btn--secondary btn--sm" :title="$t('transform.applyAllTitle')" @click="applyToAll">
+        <span>{{ $t('transform.applyAll') }}</span>
       </button>
     </div>
   </div>

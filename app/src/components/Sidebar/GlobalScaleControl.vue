@@ -4,11 +4,11 @@
       <div class="control-group__header">
         <div class="header-left">
           <span class="control-icon">📏</span>
-          <span class="control-group__title">全指一括サイズ調整</span>
+          <span class="control-group__title">{{ $t('globalScale.title') }}</span>
         </div>
         <button
           class="btn-reset-mini"
-          title="全指のスケール倍率を 1.0x にリセット"
+          :title="$t('globalScale.resetTooltip')"
           @click="resetAllScales"
         >
           <span>↺ 1.0x</span>
@@ -17,7 +17,7 @@
 
       <!-- Main Slider: 全体サイズ -->
       <div class="slider-row slider-row--main">
-        <label class="slider-label">全体サイズ:</label>
+        <label class="slider-label">{{ $t('globalScale.allSize') }}</label>
         <div class="slider-wrapper">
           <input
             type="range"
@@ -35,7 +35,7 @@
       <div class="quick-step-buttons">
         <button class="btn-step" @click="stepScale('scaleAll', -0.05)" title="-0.05">-0.05</button>
         <button class="btn-step" @click="stepScale('scaleAll', -0.01)" title="-0.01">-0.01</button>
-        <button class="btn-step btn-step--default" @click="setScale('scaleAll', 1.0)" title="標準 (1.00x)">1.00x</button>
+        <button class="btn-step btn-step--default" @click="setScale('scaleAll', 1.0)" :title="$t('globalScale.defaultBtn')">1.00x</button>
         <button class="btn-step" @click="stepScale('scaleAll', +0.01)" title="+0.01">+0.01</button>
         <button class="btn-step" @click="stepScale('scaleAll', +0.05)" title="+0.05">+0.05</button>
       </div>
@@ -43,14 +43,14 @@
       <!-- Accordion Toggle for Detailed Scales -->
       <div class="details-toggle-row">
         <button class="btn-details-toggle" @click="showDetails = !showDetails">
-          <span>{{ showDetails ? '▲ 詳細比率 (長さ・幅・厚み) を閉じる' : '▼ 詳細比率 (長さ・幅・厚み) を開く' }}</span>
+          <span>{{ showDetails ? $t('globalScale.hideDetails') : $t('globalScale.showDetails') }}</span>
         </button>
       </div>
 
       <!-- Detailed Scales (Expandable) -->
       <div v-show="showDetails" class="detailed-controls">
         <div class="slider-row">
-          <label class="slider-label">長さ倍率:</label>
+          <label class="slider-label">{{ $t('globalScale.length') }}</label>
           <div class="slider-wrapper">
             <input
               type="range"
@@ -65,7 +65,7 @@
         </div>
 
         <div class="slider-row">
-          <label class="slider-label">幅倍率:</label>
+          <label class="slider-label">{{ $t('globalScale.width') }}</label>
           <div class="slider-wrapper">
             <input
               type="range"
@@ -80,7 +80,7 @@
         </div>
 
         <div class="slider-row">
-          <label class="slider-label">厚み倍率:</label>
+          <label class="slider-label">{{ $t('globalScale.thickness') }}</label>
           <div class="slider-wrapper">
             <input
               type="range"
