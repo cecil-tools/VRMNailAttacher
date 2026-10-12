@@ -632,10 +632,27 @@ export default class EditorView extends Vue {
   padding: 0 $space-lg;
   box-shadow: 0 2px 12px rgba(230, 140, 165, 0.08);
   z-index: 10;
+  gap: $space-sm;
 
   @media (max-width: $breakpoint-mobile) {
     height: 50px;
-    padding: 0 $space-sm;
+    padding: 0 8px;
+    gap: 6px;
+
+    &__brand {
+      min-width: 0;
+      flex-shrink: 1;
+    }
+
+    &__logo {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    &__title-group {
+      min-width: 0;
+      overflow: hidden;
+    }
 
     &__subtitle,
     &__tag {
@@ -643,15 +660,23 @@ export default class EditorView extends Vue {
     }
 
     &__title {
-      font-size: 0.95rem;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     &__actions {
-      gap: 6px;
+      flex-shrink: 0;
+      gap: 5px;
 
       .btn {
-        padding: 6px 10px;
+        padding: 5px 9px;
         font-size: 11px;
+        height: 30px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        box-sizing: border-box;
       }
     }
   }
@@ -660,12 +685,15 @@ export default class EditorView extends Vue {
     display: flex;
     align-items: center;
     gap: $space-sm;
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   &__logo {
     font-size: 1.6rem;
     filter: drop-shadow(0 2px 4px rgba(255, 117, 151, 0.25));
     transition: transform $transition-fast;
+    flex-shrink: 0;
 
     &:hover {
       transform: rotate(15deg) scale(1.1);
@@ -676,6 +704,7 @@ export default class EditorView extends Vue {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-width: 0;
   }
 
   &__title {
@@ -686,6 +715,7 @@ export default class EditorView extends Vue {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1.2;
+    white-space: nowrap;
   }
 
   &__subtitle {
@@ -694,6 +724,7 @@ export default class EditorView extends Vue {
     color: $text-muted;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   &__tag {
@@ -703,12 +734,20 @@ export default class EditorView extends Vue {
     color: $accent-pink;
     border-radius: $radius-full;
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   &__actions {
     display: flex;
     align-items: center;
     gap: $space-md;
+    flex-shrink: 0;
+
+    .btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -716,6 +755,7 @@ export default class EditorView extends Vue {
   position: relative;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .locale-select {
@@ -731,13 +771,16 @@ export default class EditorView extends Vue {
   cursor: pointer;
   outline: none;
   transition: all $transition-fast;
+  white-space: nowrap;
+  flex-shrink: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff7597' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
 
   @media (max-width: $breakpoint-mobile) {
-    padding: 5px 22px 5px 8px;
+    padding: 5px 20px 5px 8px;
     font-size: 11px;
+    height: 30px;
     background-position: right 6px center;
   }
 
