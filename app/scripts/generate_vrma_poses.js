@@ -425,17 +425,17 @@ const faceFramePose = {
 };
 
 // 3-2. 両手ほおづえ (sipposenail 17)
-// 顎・頬を両手で包み込む
+// 顎・頬を両手で優しく包み込み、手の甲とネイルを正面に向ける
 const faceCheekRestPose = {
-  head: new THREE.Euler(-0.05, 0.0, 0.0),
-  rightUpperArm: new THREE.Euler(-0.70, 0.25, 0.85),
-  rightLowerArm: new THREE.Euler(0.0, 2.25, 0.0),
-  rightHand: new THREE.Euler(-1.60, 0.20, 1.35),
+  head: new THREE.Euler(-0.04, 0.0, 0.0),
+  rightUpperArm: new THREE.Euler(-0.62, 0.28, 0.92),
+  rightLowerArm: new THREE.Euler(0.0, 1.95, 0.0),
+  rightHand: new THREE.Euler(-1.85, 0.22, 0.28),
   ...makeFingers('right', 'cupped'),
 
-  leftUpperArm: new THREE.Euler(-0.70, -0.25, -0.85),
-  leftLowerArm: new THREE.Euler(0.0, -2.25, 0.0),
-  leftHand: new THREE.Euler(-1.60, -0.20, -1.35),
+  leftUpperArm: new THREE.Euler(-0.62, -0.28, -0.92),
+  leftLowerArm: new THREE.Euler(0.0, -1.95, 0.0),
+  leftHand: new THREE.Euler(-1.85, -0.22, -0.28),
   ...makeFingers('left', 'cupped'),
 };
 
