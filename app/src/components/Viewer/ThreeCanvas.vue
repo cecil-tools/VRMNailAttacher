@@ -180,18 +180,6 @@
 
       <div class="toolbar-group">
         <button
-          class="toolbar-btn toolbar-btn--camera"
-          :title="$t('viewport.titleCapture')"
-          @click="triggerCapture"
-        >
-          <span>📷 {{ $t('viewport.capture') }}</span>
-        </button>
-      </div>
-
-      <div class="toolbar-divider"></div>
-
-      <div class="toolbar-group">
-        <button
           class="toolbar-btn"
           :class="{ 'toolbar-btn--active': gridVisible }"
           :title="$t('viewport.titleGrid')"

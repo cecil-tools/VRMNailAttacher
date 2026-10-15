@@ -51,15 +51,28 @@
           @capture="onCanvasCapture"
         />
 
-        <!-- Mobile View Mode Toggle Button -->
-        <button
-          type="button"
-          class="btn-mobile-view-toggle"
-          :title="isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D')"
-          @click="isMobileFullscreen3D = !isMobileFullscreen3D"
-        >
-          <span>{{ isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D') }}</span>
-        </button>
+        <!-- Viewport Top Actions (Capture & Mobile View Toggle) -->
+        <div class="viewport-top-actions">
+          <button
+            type="button"
+            class="btn-viewport-action btn-viewport-action--capture"
+            :title="$t('viewport.titleCapture')"
+            @click="triggerCapture"
+          >
+            <span class="btn-viewport-action__icon">📷</span>
+            <span class="btn-viewport-action__label">{{ $t('viewport.capture') }}</span>
+          </button>
+
+          <!-- Mobile View Mode Toggle Button -->
+          <button
+            type="button"
+            class="btn-viewport-action btn-viewport-action--toggle"
+            :title="isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D')"
+            @click="isMobileFullscreen3D = !isMobileFullscreen3D"
+          >
+            <span>{{ isMobileFullscreen3D ? $t('viewport.toggleSettings') : $t('viewport.fullscreen3D') }}</span>
+          </button>
+        </div>
       </main>
 
       <!-- Sidebar Controls -->
@@ -632,6 +645,12 @@ export default class EditorView extends Vue {
   }
 
   // Photo Capture
+  private triggerCapture(): void {
+    if (this.threeCanvas) {
+      this.threeCanvas.triggerCapture();
+    }
+  }
+
   private onCanvasCapture({ dataUrl, blob }: { dataUrl: string; blob: Blob }): void {
     this.captureDataUrl = dataUrl;
     this.captureBlob = blob;
@@ -881,33 +900,80 @@ export default class EditorView extends Vue {
   }
 }
 
-/* Mobile View Mode Toggle Button */
-.btn-mobile-view-toggle {
-  display: none;
+/* Viewport Top Actions (Floating in Top Right) */
+.viewport-top-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
 
   @media (max-width: $breakpoint-mobile) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 25;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(8px);
-    border: 1px solid $border-medium;
-    border-radius: $radius-full;
-    padding: 6px 14px;
-    font-size: 11px;
-    font-weight: 700;
-    color: $accent-pink;
-    box-shadow: 0 4px 12px rgba(230, 140, 165, 0.25);
-    cursor: pointer;
-    transition: all $transition-fast;
+    gap: 6px;
+  }
+}
 
-    &:active {
-      transform: scale(0.96);
-      background: #ffffff;
+.btn-viewport-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid $border-medium;
+  border-radius: $radius-full;
+  padding: 7px 16px;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  color: $text-primary;
+  box-shadow: 0 4px 14px rgba(230, 140, 165, 0.22);
+  cursor: pointer;
+  transition: all $transition-fast;
+  user-select: none;
+  white-space: nowrap;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 6px 12px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  &:hover {
+    background: #ffffff;
+    border-color: $accent-pink;
+    color: $accent-pink;
+    box-shadow: 0 6px 18px rgba(255, 117, 151, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
+
+  &--capture {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 117, 151, 0.4);
+    color: $accent-pink;
+
+    &:hover {
+      background: $accent-gradient;
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 6px 18px rgba(255, 117, 151, 0.45);
+    }
+  }
+
+  &--toggle {
+    display: none;
+
+    @media (max-width: $breakpoint-mobile) {
+      display: inline-flex;
+      color: $text-secondary;
     }
   }
 }
