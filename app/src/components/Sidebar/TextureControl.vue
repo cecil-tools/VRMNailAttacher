@@ -1,8 +1,8 @@
 <template>
   <div class="texture-control">
     <!-- セクションヘッダー & 適用スコープ切り替え -->
-    <div class="control-group">
-      <div class="control-group__header">
+    <div class="control-group" :class="{ 'control-group--flat': hideHeader }">
+      <div v-if="!hideHeader" class="control-group__header">
         <span class="control-group__title">{{ $t('texture.title') }}</span>
       </div>
 
@@ -158,7 +158,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Ref } from 'vue-property-decorator';
+import { Component, Vue, Ref, Prop } from 'vue-property-decorator';
 import {
   RYUKI_PRESET,
   NailTextureOption,
@@ -180,6 +180,7 @@ interface FormattedTexture {
 
 @Component
 export default class TextureControl extends Vue {
+  @Prop({ type: Boolean, default: false }) readonly hideHeader!: boolean;
   @Ref('fileInput') readonly fileInput!: HTMLInputElement;
 
   private isDragOver = false;
@@ -375,6 +376,14 @@ export default class TextureControl extends Vue {
   border-radius: $radius-lg;
   padding: $space-sm $space-md;
   box-shadow: 0 2px 10px rgba(230, 140, 165, 0.06);
+
+  &--flat {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
 
   &__header {
     display: flex;

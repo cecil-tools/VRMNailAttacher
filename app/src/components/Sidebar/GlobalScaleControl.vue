@@ -1,7 +1,7 @@
 <template>
   <div class="global-scale-control">
-    <div class="control-group">
-      <div class="control-group__header">
+    <div class="control-group" :class="{ 'control-group--flat': hideHeader }">
+      <div v-if="!hideHeader" class="control-group__header">
         <div class="header-left">
           <span class="control-icon">📏</span>
           <span class="control-group__title">{{ $t('globalScale.title') }}</span>
@@ -99,11 +99,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Prop } from 'vue-property-decorator';
 import { GlobalScale } from '@/store/modules/nail';
 
 @Component
 export default class GlobalScaleControl extends Vue {
+  @Prop({ type: Boolean, default: false }) readonly hideHeader!: boolean;
+
   private showDetails = false;
 
   get globalScale(): GlobalScale {
@@ -153,6 +155,14 @@ export default class GlobalScaleControl extends Vue {
   border-radius: $radius-lg;
   padding: $space-sm $space-md;
   box-shadow: 0 4px 14px rgba(230, 140, 165, 0.08);
+
+  &--flat {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
 
   &__header {
     display: flex;

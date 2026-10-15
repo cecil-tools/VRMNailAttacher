@@ -107,11 +107,20 @@
     "statusAttached": "Attached (10)",
     "statusUnattached": "Not Attached",
     "preparing": "Preparing nail 3D model...",
-    "autoMeshFit": "✨ Auto-fit to finger mesh",
+    "autoMeshFit": "Auto-fit to finger mesh",
     "autoMeshFitTitle": "Automatically optimizes nail position to match finger surface and thickness",
     "autoMeshFitBadge": "Auto",
     "emptyDesc": "Switch ON to automatically attach 3D nail chips to all 10 fingertip bones of your avatar.",
-    "attachButton": "💅 Auto-Attach Nails"
+    "attachButton": "💅 Auto-Attach Nails",
+    "groupGlobal": "Global Settings (All Fingers)",
+    "groupGlobalBadge": "Global",
+    "groupIndividual": "Individual Tuning (Per-Finger)",
+    "groupIndividualBadge": "Per-Finger",
+    "stepDesign": "Nail Design (Texture)",
+    "stepAutoMeshFit": "Auto-fit to finger mesh",
+    "stepGlobalScale": "Global Scale (All Fingers)",
+    "stepFingerSelect": "Left / Right Hand (Finger Select)",
+    "stepOffset": "Finger Offsets (Transform & Morph)"
   },
   "globalScale": {
     "title": "Global Scale (All Fingers)",

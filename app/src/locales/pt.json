@@ -107,11 +107,20 @@
     "statusAttached": "Fixadas (10)",
     "statusUnattached": "Não fixadas",
     "preparing": "Preparando modelo 3D das unhas...",
-    "autoMeshFit": "✨ Ajuste automático à malha do dedo",
+    "autoMeshFit": "Ajuste automático à malha do dedo",
     "autoMeshFitTitle": "Otimiza automaticamente a posição da unha conforme a espessura e superfície do dedo",
-    "autoMeshFitBadge": "Automático",
+    "autoMeshFitBadge": "Auto",
     "emptyDesc": "Ative o botão para fixar automaticamente modelos 3D de unhas nos 10 ossos das pontas dos dedos do seu avatar.",
-    "attachButton": "💅 Fixar Unhas Automaticamente"
+    "attachButton": "💅 Fixar Unhas Automaticamente",
+    "groupGlobal": "Configurações Globais (Todos os Dedos)",
+    "groupGlobalBadge": "Global",
+    "groupIndividual": "Ajuste Individual (Por Dedo)",
+    "groupIndividualBadge": "Individual",
+    "stepDesign": "Design de Unhas (Textura)",
+    "stepAutoMeshFit": "Ajuste automático à malha do dedo",
+    "stepGlobalScale": "Escala Global (Todos os Dedos)",
+    "stepFingerSelect": "Mão Esquerda / Direita (Seleção de Dedos)",
+    "stepOffset": "Deslocamentos do Dedo (Transformação e Morfologia)"
   },
   "globalScale": {
     "title": "Escala Global (Todos os Dedos)",
