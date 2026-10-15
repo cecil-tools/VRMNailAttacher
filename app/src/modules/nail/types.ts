@@ -337,3 +337,41 @@ export const DEFAULT_MTOON_PARAMS: NailMToonParams = {
   outlineWidthMode: 'none',
 };
 
+export interface GlobalScale {
+  scaleAll: number;
+  scaleLength: number;
+  scaleWidth: number;
+  scaleThickness: number;
+}
+
+export interface NailProfileAvatarMeta {
+  name: string;
+  version?: string;
+  authors?: string;
+  vrmFormatVersion?: '0.x' | '1.0' | 'unknown';
+}
+
+export interface NailProfileTextureSettings {
+  selectedTextureId: string | null;
+  fingerTextures: Partial<Record<FingerId, string>>;
+  customTextures?: CustomTextureItem[];
+}
+
+export interface NailProfileData {
+  format: 'VRMNailProfile';
+  version: '1.0.0';
+  exportedAt: string;
+  avatar: NailProfileAvatarMeta;
+  nail: {
+    presetId: string;
+    autoMeshFit: boolean;
+    symmetrySync: boolean;
+    globalScale: GlobalScale;
+    materialType: NailMaterialType;
+    mtoonParams?: NailMToonParams;
+    texture: NailProfileTextureSettings;
+    configs: Partial<Record<FingerId, FingerNailConfig>>;
+  };
+}
+
+

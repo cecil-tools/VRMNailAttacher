@@ -37,8 +37,37 @@
           <span id="group-global-title" class="panel-group__title">{{ $t('nailPanel.groupGlobal') }}</span>
         </div>
 
+        <!-- 0. プロファイル管理 (保存・読込) [アコーディオン] -->
+        <div class="step-card" :class="{ 'step-card--collapsed': !isProfileOpen }">
+          <button
+            type="button"
+            class="step-card__header"
+            :aria-expanded="isProfileOpen"
+            @click="isProfileOpen = !isProfileOpen"
+          >
+            <div class="step-card__title-wrap">
+              <span class="step-title">{{ $t('nailPanel.stepProfile') }}</span>
+            </div>
+            <div class="step-card__header-right">
+              <span class="step-card__summary-badge">
+                {{ $t('nailPanel.profileBadge') }}
+              </span>
+              <span class="step-card__chevron" :class="{ 'step-card__chevron--open': isProfileOpen }">
+                ▾
+              </span>
+            </div>
+          </button>
+
+          <div v-show="isProfileOpen" class="step-card__body">
+            <NailProfileControl
+              @profile-applied="onProfileApplied"
+            />
+          </div>
+        </div>
+
         <!-- 1. ネイルデザイン (テクスチャ) [アコーディオン] -->
         <div class="step-card" :class="{ 'step-card--collapsed': !isDesignOpen }">
+
           <button
             type="button"
             class="step-card__header"
@@ -204,6 +233,7 @@ import FingerSelector from './FingerSelector.vue';
 import TextureControl from './TextureControl.vue';
 import TransformControl from './TransformControl.vue';
 import MorphControl from './MorphControl.vue';
+import NailProfileControl from './NailProfileControl.vue';
 import { FingerId, NailTransform, NailMaterialType, RYUKI_PRESET } from '@/modules/nail/types';
 
 @Component({
@@ -212,14 +242,17 @@ import { FingerId, NailTransform, NailMaterialType, RYUKI_PRESET } from '@/modul
     FingerSelector,
     TextureControl,
     TransformControl,
-    MorphControl
+    MorphControl,
+    NailProfileControl
   }
 })
 export default class NailControlPanel extends Vue {
   // アコーディオン開閉状態（デフォルトすべて開いた状態、手動で折りたたみ可能）
+  private isProfileOpen = true;
   private isDesignOpen = true;
   private isGlobalScaleOpen = true;
   private isOffsetOpen = true;
+
 
   get hasModel(): boolean {
     return this.$store.getters.hasModel;
@@ -340,7 +373,12 @@ export default class NailControlPanel extends Vue {
   private onMorphReset(fingerId: FingerId) {
     this.$emit('morph-reset', fingerId);
   }
+
+  private onProfileApplied(profile: any) {
+    this.$emit('profile-applied', profile);
+  }
 }
+
 </script>
 
 <style lang="scss" scoped>

@@ -99,7 +99,8 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import { GlobalScale } from '@/store/modules/nail';
+import { GlobalScale } from '@/modules/nail/types';
+
 
 @Component
 export default class GlobalScaleControl extends Vue {

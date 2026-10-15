@@ -596,6 +596,31 @@ export default class ThreeCanvas extends Vue {
   }
 
   /**
+   * Vuexに反映されたネイル設定（トランスフォーム、モーフ、テクスチャ、マテリアル）を
+   * 3D空間上の全ネイルメッシュへ一括再同期
+   */
+  public async syncAllNailState(): Promise<void> {
+    if (!this.loadedNailAssets || !this.nailAttacher.isAttached()) return;
+
+    this.updateAllNailTransforms();
+
+    const configs = this.$store.state.nail.configs;
+    for (const id of ALL_FINGER_IDS) {
+      const cfg = configs[id];
+      if (cfg && cfg.morphs) {
+        this.nailAttacher.updateMorphs(id, cfg.morphs);
+      }
+    }
+
+    const matType = this.$store.state.nail.materialType;
+    const mtoonParams = this.$store.state.nail.mtoonParams;
+    this.setNailMaterialType(matType, mtoonParams);
+
+    await this.restoreFingerTextures();
+  }
+
+
+  /**
    * 指定指のモーフウェイトを 3D メッシュへ反映
    */
   public updateNailMorph(payload: { fingerId: FingerId; name?: string; value?: number }): void {

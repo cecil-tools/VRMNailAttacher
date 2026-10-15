@@ -169,8 +169,10 @@
             @material-type-change="onMaterialTypeChange"
             @morph-change="onMorphChange"
             @morph-reset="onMorphReset"
+            @profile-applied="onProfileApplied"
           />
         </div>
+
       </aside>
     </div>
 
@@ -596,8 +598,22 @@ export default class EditorView extends Vue {
     }
   }
 
+  private async onProfileApplied() {
+    if (this.threeCanvas) {
+
+
+      const isAttached = this.$store.state.nail?.isAttached;
+      if (isAttached) {
+        await this.threeCanvas.syncAllNailState();
+      } else {
+        await this.threeCanvas.attachNails();
+      }
+    }
+  }
+
   // VRM Export
   private showExportModal = false;
+
   private isExporting = false;
   private exportErrorMessage = '';
   private attachedNailCount = 0;

@@ -12,17 +12,14 @@ import {
   TextureApplyScope,
   NailMaterialType,
   NailMToonParams,
-  DEFAULT_MTOON_PARAMS
+  DEFAULT_MTOON_PARAMS,
+  GlobalScale,
+  NailProfileData
 } from '@/modules/nail/types';
-
-export interface GlobalScale {
-  scaleAll: number;
-  scaleLength: number;
-  scaleWidth: number;
-  scaleThickness: number;
-}
-
 export interface NailState {
+
+
+
   isAttached: boolean;
   isLoading: boolean;
   selectedFinger: FingerSelection;
@@ -283,6 +280,75 @@ export const nailModule: Module<NailState, RootState> = {
     },
     setMToonParams(state, params: Partial<NailMToonParams>) {
       state.mtoonParams = { ...state.mtoonParams, ...params };
+    },
+    applyProfile(state, profile: NailProfileData) {
+      const nail = profile.nail;
+      if (!nail) return;
+
+      if (typeof nail.autoMeshFit === 'boolean') {
+        state.autoMeshFit = nail.autoMeshFit;
+      }
+      if (typeof nail.symmetrySync === 'boolean') {
+        state.symmetrySync = nail.symmetrySync;
+      }
+      if (nail.globalScale) {
+        state.globalScale = {
+          scaleAll: nail.globalScale.scaleAll ?? 1.0,
+          scaleLength: nail.globalScale.scaleLength ?? 1.0,
+          scaleWidth: nail.globalScale.scaleWidth ?? 1.0,
+          scaleThickness: nail.globalScale.scaleThickness ?? 1.0
+        };
+      }
+      if (nail.materialType) {
+        state.materialType = nail.materialType;
+      }
+      if (nail.mtoonParams) {
+        state.mtoonParams = { ...state.mtoonParams, ...nail.mtoonParams };
+      }
+
+      // テクスチャ設定
+      if (nail.texture) {
+        if (nail.texture.selectedTextureId) {
+          state.selectedTextureId = nail.texture.selectedTextureId;
+        }
+        if (nail.texture.fingerTextures) {
+          state.fingerTextures = {
+            ...state.fingerTextures,
+            ...nail.texture.fingerTextures
+          };
+        }
+        if (Array.isArray(nail.texture.customTextures) && nail.texture.customTextures.length > 0) {
+          const existingIds = new Set(state.customTextures.map((c) => c.id));
+          const toAdd = nail.texture.customTextures.filter((c) => !existingIds.has(c.id));
+          state.customTextures = [...toAdd, ...state.customTextures];
+        }
+      }
+
+      // 各指のConfigs設定
+      if (nail.configs) {
+        for (const id of ALL_FINGER_IDS) {
+          const importedCfg = nail.configs[id];
+          if (importedCfg) {
+            state.configs[id] = {
+              visible: importedCfg.visible ?? true,
+              transform: {
+                offsetForward: importedCfg.transform?.offsetForward ?? 0,
+                offsetSide: importedCfg.transform?.offsetSide ?? 0,
+                offsetHeight: importedCfg.transform?.offsetHeight ?? 0,
+                pitch: importedCfg.transform?.pitch ?? 0,
+                yaw: importedCfg.transform?.yaw ?? 0,
+                roll: importedCfg.transform?.roll ?? 0,
+                scaleAll: importedCfg.transform?.scaleAll ?? 1.0,
+                scaleLength: importedCfg.transform?.scaleLength ?? 1.0,
+                scaleWidth: importedCfg.transform?.scaleWidth ?? 1.0,
+                scaleThickness: importedCfg.transform?.scaleThickness ?? 1.0
+              },
+              morphs: importedCfg.morphs ? { ...importedCfg.morphs } : {}
+            };
+          }
+        }
+      }
     }
   }
 };
+
