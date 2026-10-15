@@ -298,6 +298,21 @@ export default class ExportModal extends Vue {
     padding: 12px 16px;
     border-top: 1px solid $border-subtle;
     background: $bg-tertiary;
+    box-sizing: border-box;
+
+    @media (max-width: 520px) {
+      flex-direction: column-reverse;
+      padding: 12px 14px;
+      gap: 8px;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 11px 16px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+    }
   }
 }
 
