@@ -227,7 +227,9 @@
     "saveBtn": "💾 Exportar e Salvar",
     "cancel": "Cancelar",
     "execute": "Exportar",
-    "exportSuccess": "Exportação do VRM concluída com sucesso!"
+    "exportSuccess": "Exportação do VRM concluída com sucesso!",
+    "advancedOptions": "Opções Avançadas (Título e Autor)",
+    "statusSummary": "💅 {count} Unhas Fixadas / VRM {version} ({shader})"
   },
   "helpModal": {
     "title": "Guia de Uso do VRMNailAttacher",

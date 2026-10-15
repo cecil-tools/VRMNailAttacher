@@ -227,7 +227,9 @@
     "saveBtn": "💾 Export & Save",
     "cancel": "Cancel",
     "execute": "Export",
-    "exportSuccess": "VRM export complete!"
+    "exportSuccess": "VRM export complete!",
+    "advancedOptions": "Advanced Options (Title & Author)",
+    "statusSummary": "💅 {count} Nails Attached / VRM {version} ({shader})"
   },
   "helpModal": {
     "title": "VRMNailAttacher User Guide",

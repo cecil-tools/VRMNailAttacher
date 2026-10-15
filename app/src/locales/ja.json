@@ -227,7 +227,9 @@
     "saveBtn": "💾 エクスポートして保存",
     "cancel": "キャンセル",
     "execute": "エクスポート実行",
-    "exportSuccess": "VRM のエクスポートが完了しました！"
+    "exportSuccess": "VRM のエクスポートが完了しました！",
+    "advancedOptions": "詳細設定 (アバター名・作者名)",
+    "statusSummary": "💅 ネイル {count}本装着 / VRM {version} ({shader})"
   },
   "helpModal": {
     "title": "VRMNailAttacher 使い方ガイド",

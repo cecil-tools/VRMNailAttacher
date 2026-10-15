@@ -19,38 +19,25 @@
 
       <!-- Modal Body -->
       <div class="modal-card__body">
-        <!-- Status summary banner -->
-        <div class="export-summary">
-          <div class="export-summary__item">
-            <span class="export-summary__label">{{ $t('exportModal.targetModel') }}</span>
-            <span class="export-summary__value">{{ defaultModelName || $t('exportModal.unselected') }}</span>
-          </div>
-          <div class="export-summary__item">
-            <span class="export-summary__label">{{ $t('exportModal.format') }}</span>
-            <span class="export-summary__value badge-format">VRM {{ vrmVersion || '0.x' }}</span>
-          </div>
-          <div class="export-summary__item">
-            <span class="export-summary__label">{{ $t('exportModal.attachedCount') }}</span>
-            <span
-              class="export-summary__value"
-              :class="{ 'text-warning': attachedCount === 0, 'text-success': attachedCount > 0 }"
-            >
-              {{ $t('exportModal.nailsCount', { count: attachedCount }) }}
-            </span>
-          </div>
-          <div class="export-summary__item">
-            <span class="export-summary__label">{{ $t('exportModal.shader') }}</span>
-            <span class="export-summary__value badge-format">
-              {{ materialType === 'mtoon' ? '🎨 MToon' : '✨ Standard' }}
-            </span>
-          </div>
+        <!-- Compact Status Chips -->
+        <div class="export-status-bar">
+          <span
+            class="status-chip status-chip--nails"
+            :class="{ 'status-chip--warning': attachedCount === 0 }"
+          >
+            💅 {{ attachedCount }} / 10本
+          </span>
+          <span class="status-chip status-chip--format">VRM {{ vrmVersion || '0.x' }}</span>
+          <span class="status-chip status-chip--shader">
+            {{ materialType === 'mtoon' ? '🎨 MToon' : '✨ Standard' }}
+          </span>
         </div>
 
         <div v-if="attachedCount === 0" class="alert-box alert-box--warning">
           {{ $t('exportModal.warningNoNails') }}
         </div>
 
-        <!-- Form fields -->
+        <!-- Primary Field: Filename -->
         <div class="form-group">
           <label class="form-label" for="export-filename">
             {{ $t('exportModal.filenameLabel') }} <span class="required">*</span>
@@ -65,39 +52,41 @@
           />
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="export-title">{{ $t('exportModal.avatarTitleLabel') }}</label>
-            <input
-              id="export-title"
-              v-model="avatarTitle"
-              type="text"
-              class="form-input"
-              :placeholder="$t('exportModal.avatarTitleLabel')"
-              :disabled="isExporting"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="export-author">{{ $t('exportModal.avatarAuthorLabel') }}</label>
-            <input
-              id="export-author"
-              v-model="avatarAuthors"
-              type="text"
-              class="form-input"
-              :placeholder="$t('exportModal.avatarAuthorLabel')"
-              :disabled="isExporting"
-            />
-          </div>
-        </div>
+        <!-- Advanced Options Toggle -->
+        <div class="advanced-section">
+          <button
+            type="button"
+            class="btn-advanced-toggle"
+            :aria-expanded="showAdvanced"
+            @click="showAdvanced = !showAdvanced"
+          >
+            <span class="advanced-chevron" :class="{ 'advanced-chevron--open': showAdvanced }">▸</span>
+            <span>{{ $t('exportModal.advancedOptions') }}</span>
+          </button>
 
-        <!-- Non-destructive export explanation -->
-        <div class="info-note">
-          <span class="info-note__icon">🛡️</span>
-          <div class="info-note__text">
-            <strong>{{ $t('exportModal.nonDestructiveTitle') }}</strong>
-            <p>
-              {{ $t('exportModal.nonDestructiveDesc') }}
-            </p>
+          <div v-show="showAdvanced" class="advanced-content">
+            <div class="form-group">
+              <label class="form-label" for="export-title">{{ $t('exportModal.avatarTitleLabel') }}</label>
+              <input
+                id="export-title"
+                v-model="avatarTitle"
+                type="text"
+                class="form-input"
+                :placeholder="$t('exportModal.avatarTitleLabel')"
+                :disabled="isExporting"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="export-author">{{ $t('exportModal.avatarAuthorLabel') }}</label>
+              <input
+                id="export-author"
+                v-model="avatarAuthors"
+                type="text"
+                class="form-input"
+                :placeholder="$t('exportModal.avatarAuthorLabel')"
+                :disabled="isExporting"
+              />
+            </div>
           </div>
         </div>
 
@@ -154,6 +143,7 @@ export default class ExportModal extends Vue {
   private fileName = '';
   private avatarTitle = '';
   private avatarAuthors = '';
+  private showAdvanced = false;
 
   @Watch('visible')
   onVisibleChange(val: boolean) {
@@ -174,6 +164,7 @@ export default class ExportModal extends Vue {
     this.fileName = `${baseName}_with_nails.vrm`;
     this.avatarTitle = this.defaultTitle || baseName;
     this.avatarAuthors = this.defaultAuthors || '';
+    this.showAdvanced = false;
   }
 
   private handleClose() {
@@ -209,13 +200,15 @@ export default class ExportModal extends Vue {
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background: rgba(74, 56, 61, 0.35);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: $space-md;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
 .modal-card {
@@ -223,24 +216,22 @@ export default class ExportModal extends Vue {
   border: 1px solid $border-medium;
   border-radius: $radius-lg;
   width: 100%;
-  max-width: 520px;
+  max-width: 440px;
+  max-height: calc(100dvh - 24px);
+  max-height: calc(100vh - 24px);
   box-shadow: 0 16px 40px rgba(230, 140, 165, 0.25);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-  @media (max-width: $breakpoint-mobile) {
-    width: 95vw;
-    max-width: 95vw;
-    max-height: 90vh;
-  }
+  box-sizing: border-box;
 
   &__header {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: $space-md $space-lg;
+    padding: 12px 16px;
     border-bottom: 1px solid $border-subtle;
     background: $bg-tertiary;
   }
@@ -248,15 +239,15 @@ export default class ExportModal extends Vue {
   &__header-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   &__icon {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   &__title {
-    font-size: $font-size-base;
+    font-size: $font-size-sm;
     font-weight: 700;
     color: $text-primary;
     margin: 0;
@@ -288,18 +279,23 @@ export default class ExportModal extends Vue {
   }
 
   &__body {
-    padding: $space-lg;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: $space-md;
+    gap: 12px;
   }
 
   &__footer {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: $space-sm;
-    padding: $space-md $space-lg;
+    padding: 12px 16px;
     border-top: 1px solid $border-subtle;
     background: $bg-tertiary;
   }
@@ -316,71 +312,56 @@ export default class ExportModal extends Vue {
   }
 }
 
-.export-summary {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+/* Compact status chips */
+.export-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: $radius-full;
   background: $bg-tertiary;
-  padding: 10px 12px;
-  border-radius: $radius-md;
   border: 1px solid $border-subtle;
+  color: $text-secondary;
 
-  @media (max-width: $breakpoint-mobile) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-
-  &__item {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    overflow: hidden;
-  }
-
-  &__label {
-    font-size: 10px;
-    color: $text-muted;
-    text-transform: uppercase;
+  &--nails {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.25);
+    color: #059669;
     font-weight: 700;
   }
 
-  &__value {
-    font-size: 12px;
-    font-weight: 700;
-    color: $text-primary;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  &--warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #d97706;
+  }
+
+  &--format {
+    color: $accent-purple;
+    background: rgba(185, 155, 248, 0.1);
+    border-color: rgba(185, 155, 248, 0.25);
+  }
+
+  &--shader {
+    color: $accent-pink;
+    background: rgba(255, 117, 151, 0.08);
+    border-color: rgba(255, 117, 151, 0.25);
   }
 }
 
-.badge-format {
-  color: $accent-pink;
-}
-
-.text-success {
-  color: #10b981 !important;
-}
-
-.text-warning {
-  color: #f59e0b !important;
-}
-
+/* Form Styles */
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
-}
-
-.form-row {
-  display: flex;
-  gap: $space-md;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    gap: $space-sm;
-  }
 }
 
 .form-label {
@@ -394,12 +375,14 @@ export default class ExportModal extends Vue {
 }
 
 .form-input {
+  width: 100%;
+  box-sizing: border-box;
   background: $bg-tertiary;
   border: 1px solid $border-medium;
   border-radius: $radius-md;
   color: $text-primary;
-  padding: 8px 12px;
-  font-size: 12px;
+  padding: 9px 12px;
+  font-size: 13px;
   transition: all $transition-fast;
 
   &:focus {
@@ -415,36 +398,52 @@ export default class ExportModal extends Vue {
   }
 }
 
-.info-note {
+/* Advanced section */
+.advanced-section {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.btn-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $accent-pink;
+  }
+}
+
+.advanced-chevron {
+  font-size: 10px;
+  display: inline-block;
+  transition: transform $transition-fast;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+.advanced-content {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(255, 117, 151, 0.08);
-  border: 1px solid rgba(255, 117, 151, 0.25);
+  background: $bg-tertiary;
+  border: 1px solid $border-subtle;
   border-radius: $radius-md;
-
-  &__icon {
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  &__text {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-
-    strong {
-      font-size: 11px;
-      color: $accent-pink;
-    }
-
-    p {
-      font-size: 11px;
-      color: $text-secondary;
-      line-height: 1.5;
-      margin: 0;
-    }
-  }
+  animation: modal-pop 0.15s ease;
 }
 
 .alert-box {
@@ -467,7 +466,7 @@ export default class ExportModal extends Vue {
 }
 
 .btn {
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: $radius-full;
   font-size: 12px;
   font-weight: 600;
@@ -478,6 +477,7 @@ export default class ExportModal extends Vue {
   gap: 6px;
   border: none;
   transition: all $transition-fast;
+  white-space: nowrap;
 
   &--secondary {
     background: #ffffff;
@@ -489,7 +489,6 @@ export default class ExportModal extends Vue {
       background: $bg-tertiary;
       border-color: $accent-pink;
       color: $accent-pink;
-      transform: translateY(-1px);
     }
   }
 
@@ -501,7 +500,6 @@ export default class ExportModal extends Vue {
     &:hover:not(:disabled) {
       background: $accent-gradient-hover;
       box-shadow: 0 6px 18px rgba(255, 117, 151, 0.45);
-      transform: translateY(-1px);
     }
   }
 
