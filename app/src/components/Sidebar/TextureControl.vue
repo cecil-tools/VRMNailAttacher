@@ -8,7 +8,6 @@
 
       <!-- 全指共通デザイン（マテリアル統合）案内バッジ -->
       <div class="scope-info-badge">
-        <span class="scope-info-badge__icon">💅</span>
         <span class="scope-info-badge__text">{{ $t('texture.scopeUnified') }}</span>
       </div>
 

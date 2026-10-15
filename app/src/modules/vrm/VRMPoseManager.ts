@@ -32,27 +32,27 @@ export interface PoseInfo {
 
 export const POSE_LIST: PoseInfo[] = [
   // サロン・両手見せ系
-  { id: 'salonCupped', labelKey: 'poses.salonCupped', category: 'salon', icon: '🤲', cameraFocus: 'both' },
-  { id: 'salonChestCross', labelKey: 'poses.salonChestCross', category: 'salon', icon: '🎀', cameraFocus: 'both' },
-  { id: 'salonMouthOverlap', labelKey: 'poses.salonMouthOverlap', category: 'salon', icon: '🤫', cameraFocus: 'both' },
-  { id: 'photoBoth', labelKey: 'poses.photoBoth', category: 'salon', icon: '👐', cameraFocus: 'both' },
-  { id: 'photoRight', labelKey: 'poses.photoRight', category: 'salon', icon: '💅', cameraFocus: 'right' },
-  { id: 'photoLeft', labelKey: 'poses.photoLeft', category: 'salon', icon: '💅', cameraFocus: 'left' },
+  { id: 'salonCupped', labelKey: 'poses.salonCupped', category: 'salon', icon: '', cameraFocus: 'both' },
+  { id: 'salonChestCross', labelKey: 'poses.salonChestCross', category: 'salon', icon: '', cameraFocus: 'both' },
+  { id: 'salonMouthOverlap', labelKey: 'poses.salonMouthOverlap', category: 'salon', icon: '', cameraFocus: 'both' },
+  { id: 'photoBoth', labelKey: 'poses.photoBoth', category: 'salon', icon: '', cameraFocus: 'both' },
+  { id: 'photoRight', labelKey: 'poses.photoRight', category: 'salon', icon: '', cameraFocus: 'right' },
+  { id: 'photoLeft', labelKey: 'poses.photoLeft', category: 'salon', icon: '', cameraFocus: 'left' },
 
   // フェイス＆チーク系
-  { id: 'faceFrame', labelKey: 'poses.faceFrame', category: 'face', icon: '🌸', cameraFocus: 'face' },
-  { id: 'faceCheekRest', labelKey: 'poses.faceCheekRest', category: 'face', icon: '😊', cameraFocus: 'face' },
-  { id: 'faceCheekTouch', labelKey: 'poses.faceCheekTouch', category: 'face', icon: '✨', cameraFocus: 'face' },
-  { id: 'faceTriangle', labelKey: 'poses.faceTriangle', category: 'face', icon: '🔺', cameraFocus: 'face' },
+  { id: 'faceFrame', labelKey: 'poses.faceFrame', category: 'face', icon: '', cameraFocus: 'face' },
+  { id: 'faceCheekRest', labelKey: 'poses.faceCheekRest', category: 'face', icon: '', cameraFocus: 'face' },
+  { id: 'faceCheekTouch', labelKey: 'poses.faceCheekTouch', category: 'face', icon: '', cameraFocus: 'face' },
+  { id: 'faceTriangle', labelKey: 'poses.faceTriangle', category: 'face', icon: '', cameraFocus: 'face' },
 
   // キュート・仕草系
-  { id: 'cuteCatClaw', labelKey: 'poses.cuteCatClaw', category: 'cute', icon: '🐾', cameraFocus: 'both' },
-  { id: 'cutePrayer', labelKey: 'poses.cutePrayer', category: 'cute', icon: '🙏', cameraFocus: 'both' },
-  { id: 'cuteLipTouch', labelKey: 'poses.cuteLipTouch', category: 'cute', icon: '💋', cameraFocus: 'face' },
+  { id: 'cuteCatClaw', labelKey: 'poses.cuteCatClaw', category: 'cute', icon: '', cameraFocus: 'both' },
+  { id: 'cutePrayer', labelKey: 'poses.cutePrayer', category: 'cute', icon: '', cameraFocus: 'both' },
+  { id: 'cuteLipTouch', labelKey: 'poses.cuteLipTouch', category: 'cute', icon: '', cameraFocus: 'face' },
 
   // 基本
-  { id: 'nail', labelKey: 'poses.nail', category: 'basic', icon: '🖐️', cameraFocus: 'right' },
-  { id: 'tpose', labelKey: 'poses.tpose', category: 'basic', icon: '🧍', cameraFocus: 'both' },
+  { id: 'nail', labelKey: 'poses.nail', category: 'basic', icon: '', cameraFocus: 'right' },
+  { id: 'tpose', labelKey: 'poses.tpose', category: 'basic', icon: '', cameraFocus: 'both' },
 ];
 
 export class VRMPoseManager {

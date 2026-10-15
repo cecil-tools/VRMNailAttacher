@@ -3,7 +3,6 @@
     <div class="control-group" :class="{ 'control-group--flat': hideHeader }">
       <div v-if="!hideHeader" class="control-group__header">
         <div class="header-left">
-          <span class="control-icon">📏</span>
           <span class="control-group__title">{{ $t('globalScale.title') }}</span>
         </div>
         <button
