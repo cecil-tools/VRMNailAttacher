@@ -107,11 +107,20 @@
     "statusAttached": "装着中 (10本)",
     "statusUnattached": "未装着",
     "preparing": "ネイル 3D モデルを準備中...",
-    "autoMeshFit": "✨ 指メッシュに自動フィット",
+    "autoMeshFit": "指メッシュに自動フィット",
     "autoMeshFitTitle": "指の肉付き・表面高さに合わせて爪の位置を自動最適化します",
     "autoMeshFitBadge": "自動補正",
     "emptyDesc": "スイッチを ON にすると、アバターの左右 10 本の指先ボーンへネイルチップ 3D モデルを自動装着します。",
-    "attachButton": "💅 ネイルを自動装着する"
+    "attachButton": "💅 ネイルを自動装着する",
+    "groupGlobal": "全体設定 (全指共通)",
+    "groupGlobalBadge": "全体",
+    "groupIndividual": "個別調整 (指ごとの調整)",
+    "groupIndividualBadge": "個別",
+    "stepDesign": "ネイルデザイン (テクスチャ)",
+    "stepAutoMeshFit": "指メッシュに自動フィット",
+    "stepGlobalScale": "全指一括サイズ調整",
+    "stepFingerSelect": "左手・右手 (指選択)",
+    "stepOffset": "各オフセット (位置・角度・形状)"
   },
   "globalScale": {
     "title": "全指一括サイズ調整",
