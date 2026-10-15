@@ -46,7 +46,6 @@
             @click="isDesignOpen = !isDesignOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-badge">1</span>
               <span class="step-icon">🎨</span>
               <span class="step-title">{{ $t('nailPanel.stepDesign') }}</span>
             </div>
@@ -72,7 +71,6 @@
         <!-- 2. 指メッシュに自動フィット -->
         <div class="mesh-fit-bar">
           <div class="mesh-fit-left">
-            <span class="step-badge">2</span>
             <span class="step-icon">✨</span>
             <label class="mesh-fit-label" :title="$t('nailPanel.autoMeshFitTitle')">
               <input
@@ -95,7 +93,6 @@
             @click="isGlobalScaleOpen = !isGlobalScaleOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-badge">3</span>
               <span class="step-icon">📏</span>
               <span class="step-title">{{ $t('nailPanel.stepGlobalScale') }}</span>
             </div>
@@ -140,7 +137,6 @@
         <div class="step-card step-card--static">
           <div class="step-card__header step-card__header--no-toggle">
             <div class="step-card__title-wrap">
-              <span class="step-badge">4</span>
               <span class="step-icon">🖐️</span>
               <span class="step-title">{{ $t('nailPanel.stepFingerSelect') }}</span>
             </div>
@@ -165,7 +161,6 @@
             @click="isOffsetOpen = !isOffsetOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-badge">5</span>
               <span class="step-icon">🎯</span>
               <span class="step-title">{{ $t('nailPanel.stepOffset') }}</span>
             </div>
@@ -529,20 +524,6 @@ export default class NailControlPanel extends Vue {
   }
 }
 
-.step-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: $accent-gradient;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  box-shadow: 0 2px 6px rgba(255, 117, 151, 0.3);
-  flex-shrink: 0;
-}
 
 .step-icon {
   font-size: 13px;
