@@ -57,9 +57,24 @@
             type="button"
             class="btn-viewport-action btn-viewport-action--capture"
             :title="$t('viewport.titleCapture')"
+            :aria-label="$t('viewport.titleCapture')"
             @click="triggerCapture"
           >
-            <span class="btn-viewport-action__label">{{ $t('viewport.capture') }}</span>
+            <svg
+              class="btn-viewport-action__svg"
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
           </button>
 
           <!-- Mobile View Mode Toggle Button -->
@@ -955,15 +970,39 @@ export default class EditorView extends Vue {
   }
 
   &--capture {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.95);
     border-color: rgba(255, 117, 151, 0.4);
     color: $accent-pink;
+    flex-shrink: 0;
+
+    @media (max-width: $breakpoint-mobile) {
+      width: 34px;
+      height: 34px;
+    }
 
     &:hover {
       background: $accent-gradient;
       color: #ffffff;
       border-color: transparent;
       box-shadow: 0 6px 18px rgba(255, 117, 151, 0.45);
+      transform: translateY(-1px) scale(1.05);
+    }
+  }
+
+  &__svg {
+    width: 19px;
+    height: 19px;
+    display: block;
+    pointer-events: none;
+    transition: transform $transition-fast;
+
+    @media (max-width: $breakpoint-mobile) {
+      width: 16px;
+      height: 16px;
     }
   }
 
