@@ -46,7 +46,6 @@
             @click="isDesignOpen = !isDesignOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-icon">🎨</span>
               <span class="step-title">{{ $t('nailPanel.stepDesign') }}</span>
             </div>
             <div class="step-card__header-right">
@@ -71,7 +70,6 @@
         <!-- 2. 指メッシュに自動フィット -->
         <div class="mesh-fit-bar">
           <div class="mesh-fit-left">
-            <span class="step-icon">✨</span>
             <label class="mesh-fit-label" :title="$t('nailPanel.autoMeshFitTitle')">
               <input
                 type="checkbox"
@@ -93,7 +91,6 @@
             @click="isGlobalScaleOpen = !isGlobalScaleOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-icon">📏</span>
               <span class="step-title">{{ $t('nailPanel.stepGlobalScale') }}</span>
             </div>
             <div class="step-card__header-right">
@@ -137,7 +134,6 @@
         <div class="step-card step-card--static">
           <div class="step-card__header step-card__header--no-toggle">
             <div class="step-card__title-wrap">
-              <span class="step-icon">🖐️</span>
               <span class="step-title">{{ $t('nailPanel.stepFingerSelect') }}</span>
             </div>
             <span class="step-card__summary-badge step-card__summary-badge--active">
@@ -161,7 +157,6 @@
             @click="isOffsetOpen = !isOffsetOpen"
           >
             <div class="step-card__title-wrap">
-              <span class="step-icon">🎯</span>
               <span class="step-title">{{ $t('nailPanel.stepOffset') }}</span>
             </div>
             <div class="step-card__header-right">

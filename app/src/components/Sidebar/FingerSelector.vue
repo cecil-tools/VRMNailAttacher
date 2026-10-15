@@ -27,7 +27,6 @@
         :class="{ 'finger-btn--active': selectedFinger === finger.id }"
         @click="selectFinger(finger.id)"
       >
-        <span class="finger-btn__icon">💅</span>
         <span class="finger-btn__name">{{ $t('fingerSelector.fingers.' + finger.type) }}</span>
       </button>
     </div>

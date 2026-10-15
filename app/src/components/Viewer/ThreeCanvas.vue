@@ -11,7 +11,6 @@
     <!-- Drag & Drop Overlay -->
     <div v-if="isDragging" class="drag-overlay">
       <div class="drag-overlay__content">
-        <span class="drag-overlay__icon">📂</span>
         <p class="drag-overlay__text">{{ $t('viewport.dragDropOverlay') }}</p>
       </div>
     </div>
@@ -138,7 +137,6 @@
           <div v-if="isPoseMenuOpen" class="pose-popover" @click.stop>
             <div class="pose-popover__header">
               <div class="pose-popover__title">
-                <span>💅</span>
                 <span>{{ $t('poses.paletteTitle') }}</span>
               </div>
               <button type="button" class="pose-popover__close" @click="closePoseMenu">✕</button>
@@ -168,7 +166,6 @@
                 :class="{ 'pose-item-card--active': currentPose === p.id }"
                 @click="selectPose(p.id)"
               >
-                <span class="pose-item-card__icon">{{ p.icon }}</span>
                 <span class="pose-item-card__name">{{ $t(p.labelKey) }}</span>
               </button>
             </div>
@@ -240,9 +237,9 @@ export default class ThreeCanvas extends Vue {
   get currentPoseButtonLabel(): string {
     const pose = this.poseList.find((p) => p.id === this.currentPose);
     if (pose && this.isPhotoPoseActive) {
-      return `${pose.icon} ${this.$t(pose.labelKey)}`;
+      return `${this.$t(pose.labelKey)}`;
     }
-    return `💅 ${this.$t('poses.title')}`;
+    return `${this.$t('poses.title')}`;
   }
 
   get categories(): Array<{ id: PoseCategory; labelKey: string }> {

@@ -59,7 +59,6 @@
             :title="$t('viewport.titleCapture')"
             @click="triggerCapture"
           >
-            <span class="btn-viewport-action__icon">📷</span>
             <span class="btn-viewport-action__label">{{ $t('viewport.capture') }}</span>
           </button>
 
